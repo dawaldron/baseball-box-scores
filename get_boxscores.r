@@ -2,11 +2,9 @@ Sys.setlocale("LC_ALL", "en_US.UTF-8")
 library(here)
 library(data.table)
 library(magrittr)
-library(rvest)
 library(httr)
 library(jsonlite)
 library(stringr)
-library(baseballr)
 library(chromote)
 
 
