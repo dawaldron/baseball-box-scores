@@ -1662,7 +1662,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "<html>\n",
     "<head>\n",
     "  <meta charset=\"UTF-8\">\n",  # Add charset meta tag
-    "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+    "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n",
     "  <title>Baseball Box Scores - ", display_date, "</title>\n",
     "  <style>\n",
     "    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');\n",
