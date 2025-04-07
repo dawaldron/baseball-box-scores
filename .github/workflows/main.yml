@@ -1,0 +1,38 @@
+name: Generate and Deploy Box Scores
+
+on:
+  schedule:
+    # Run daily at 7 AM UTC (adjust as needed)
+    - cron: '0 7 * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.2.0'
+      
+      - name: Install required R packages
+        run: |
+          Rscript -e 'install.packages(c("here", "data.table", "magrittr", "rvest", "httr", "jsonlite", "stringr", "chromote"))'
+      
+      - name: Generate box scores
+        run: |
+          Rscript -e 'source("get-boxscores.r"); get_box_scores(format(Sys.Date()-1, "%Y"), format(Sys.Date()-1, "%m"), format(Sys.Date()-1, "%d"), output_dir="./game_data")'
+      
+      - name: Deploy to Bluehost via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./game_data/
+          server-dir: /
