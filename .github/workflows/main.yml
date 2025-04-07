@@ -29,7 +29,7 @@ jobs:
       
       - name: Install required R packages
         run: |
-          Rscript -e 'install.packages(c("here", "data.table", "magrittr", "rvest", "httr", "jsonlite", "stringr", "chromote"))'
+          Rscript -e 'install.packages(c("here", "data.table", "magrittr", "httr", "jsonlite", "stringr", "chromote"))'
       
       - name: Generate box scores
         run: |
