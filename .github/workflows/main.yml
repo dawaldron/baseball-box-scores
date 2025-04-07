@@ -26,7 +26,7 @@ jobs:
       
       - name: Generate box scores
         run: |
-          Rscript -e 'source("get-boxscores.r"); get_box_scores(format(Sys.Date()-1, "%Y"), format(Sys.Date()-1, "%m"), format(Sys.Date()-1, "%d"), output_dir="./game_data")'
+          Rscript -e 'source("get_boxscores.r"); get_box_scores(format(Sys.Date()-1, "%Y"), format(Sys.Date()-1, "%m"), format(Sys.Date()-1, "%d"), output_dir="./game_data")'
       
       - name: Deploy to Bluehost via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
