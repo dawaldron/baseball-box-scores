@@ -43,6 +43,10 @@ jobs:
         run: |
           Rscript -e 'install.packages(c("here", "data.table", "magrittr", "httr", "jsonlite", "stringr", "chromote", "base64enc"))'
       
+      - name: Set date variable
+        id: date
+        run: echo "yesterday=$(date -d 'yesterday' '+%Y%m%d')" >> $GITHUB_OUTPUT
+        
       - name: Generate box scores
         run: |
           Rscript -e 'source("get_boxscores.r"); get_box_scores(format(Sys.Date()-1, "%Y"), format(Sys.Date()-1, "%m"), format(Sys.Date()-1, "%d"), output_dir="./game_data")'
@@ -55,4 +59,8 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./game_data/
           server-dir: /
-          dangerous-clean-slate: false
+          exclude: |
+            **/*.html
+            **/*.pdf
+            !**/${{ steps.date.outputs.yesterday }}.html
+            !**/${{ steps.date.outputs.yesterday }}.pdf
