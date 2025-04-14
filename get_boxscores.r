@@ -492,7 +492,7 @@ process_all_gamesMLB <- function(year, month, day) {
   
   all_games_data <- games$dates$games[[1]] %>%
     data.table() %>%
-    .[status.statusCode == 'F', gamePk] %>%
+    .[status.statusCode %in% c('F','FR'), gamePk] %>%
     lapply(process_game_box_scoreMLB)
   
   # Remove any NULL entries (failed processing)
