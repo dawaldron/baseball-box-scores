@@ -448,9 +448,15 @@ process_all_gamesMLB <- function(year, month, day) {
     
     dt_pitchNote <- resp_box$info %>%
       data.table() %>%
-      .[label %in% c('IBB','HBP','WP')] %>%
-      .[, ifelse(length(label)==0, '', paste0('<b>', label, ':</b> ', value))] %>%
-      paste0(collapse = ' ')
+      .[label %in% c('IBB','HBP','WP')]
+    
+    if (nrow(dt_pitchNote) > 0) {
+      dt_pitchNote <- dt_pitchNote %>%
+        .[, paste0('<b>', label, ':</b> ', value)] %>%
+        paste0(collapse = ' ')
+    } else {
+      dt_pitchNote <- ''
+    }
     
     for (i in 1:nrow(dt_bnMappingA)) {
       dt_pitchNote <- gsub(dt_bnMappingA[i, boxscoreName], dt_bnMappingA[i, boxscoreName2], dt_pitchNote, fixed = TRUE)
@@ -769,6 +775,14 @@ generate_newspaper_page <- function(games_data, date_str,
     "    }\n",
     "  </style>\n",
     "  <script>\n", navigation_js, "\n    </script>\n",
+    "  <!-- Global site tag (gtag.js) - Google Analytics -->\n",
+    "  <script async src='https://www.googletagmanager.com/gtag/js?id=UA-111281561-1'></script>\n",
+    "  <script>\n",
+    "    window.dataLayer = window.dataLayer || [];\n",
+    "    function gtag(){dataLayer.push(arguments);}\n",
+    "    gtag('js', new Date());\n",
+    "    gtag('config', 'UA-111281561-1');\n",
+    "  </script>\n",
     "</head>\n",
     "<body>\n",
     "  <div class='newspaper'>\n",
