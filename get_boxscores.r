@@ -996,10 +996,21 @@ generate_newspaper_page2 <- function(games_data, date_str,
       )
     }
     
+    # Build clinch indicator footnotes based on what's actually present in AL standings
+    al_teams <- c(standings_data$al[[1]]$Team, standings_data$al[[2]]$Team, standings_data$al[[3]]$Team)
+    al_clinch_footnotes <- c()
+    if (any(grepl("^w-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "w-clinched wild card")
+    if (any(grepl("^x-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "x-clinched playoff berth")
+    if (any(grepl("^y-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "y-clinched division")
+    if (any(grepl("^z-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "z-clinched best record")
+
     html_content <- paste0(
       html_content,
       "              </tbody>\n",
       "            </table>\n",
+      ifelse(length(al_clinch_footnotes) > 0,
+             paste0("            <div class='leaders-note' style='margin-top: 8px;'>", paste(al_clinch_footnotes, collapse = "; "), "</div>\n"),
+             ""),
       "          </div>\n",
       "          <div class='column-60'>\n",
       "            <div class='boxscores-title'>A.L. LEADERS</div>\n",
@@ -1216,10 +1227,21 @@ generate_newspaper_page2 <- function(games_data, date_str,
       )
     }
     
+    # Build clinch indicator footnotes based on what's actually present in NL standings
+    nl_teams <- c(standings_data$nl[[1]]$Team, standings_data$nl[[2]]$Team, standings_data$nl[[3]]$Team)
+    nl_clinch_footnotes <- c()
+    if (any(grepl("^w-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "w-clinched wild card")
+    if (any(grepl("^x-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "x-clinched playoff berth")
+    if (any(grepl("^y-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "y-clinched division")
+    if (any(grepl("^z-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "z-clinched best record")
+
     html_content <- paste0(
       html_content,
       "              </tbody>\n",
       "            </table>\n",
+      ifelse(length(nl_clinch_footnotes) > 0,
+             paste0("            <div class='leaders-note' style='margin-top: 8px;'>", paste(nl_clinch_footnotes, collapse = "; "), "</div>\n"),
+             ""),
       "          </div>\n",
       "          <div class='column-60'>\n",
       "            <div class='boxscores-title'>N.L. LEADERS</div>\n",
@@ -1689,19 +1711,40 @@ get_standingsMLB <- function(date) {
       unlist()
     
     lapply(1:length(resp_div), function(i) {
+      # Get team names
+      team_names <- resp_lg$records$teamRecords[[i]]$team$link %>%
+        lapply(function(x) {
+          resp_team <- GET(
+            paste0('https://statsapi.mlb.com/', x)
+          ) %>%
+            content(as = 'text') %>%
+            fromJSON()
+
+          resp_team$teams$shortName
+        }) %>%
+        unlist()
+
+      # Get clinch indicators (may be NULL or NA for some teams)
+      clinch_indicators <- tryCatch({
+        resp_lg$records$teamRecords[[i]]$clinchIndicator
+      }, error = function(e) rep("", length(team_names)))
+
+      # If clinch_indicators is NULL, create empty vector
+      if (is.null(clinch_indicators)) {
+        clinch_indicators <- rep("", length(team_names))
+      }
+
+      # Replace NA with empty string
+      clinch_indicators[is.na(clinch_indicators)] <- ""
+
+      # Prepend clinch indicator to team name if it exists
+      team_display <- ifelse(clinch_indicators != "",
+                             paste0(clinch_indicators, "-", team_names),
+                             team_names)
+
       data.table(
         div = resp_div[i],
-        Team = resp_lg$records$teamRecords[[i]]$team$link %>%
-          lapply(function(x) {
-            resp_team <- GET(
-              paste0('https://statsapi.mlb.com/', x)
-            ) %>%
-              content(as = 'text') %>%
-              fromJSON()
-            
-            resp_team$teams$shortName
-          }) %>%
-          unlist(),
+        Team = team_display,
         W = resp_lg$records$teamRecords[[i]]$wins,
         L = resp_lg$records$teamRecords[[i]]$losses,
         PCT = resp_lg$records$teamRecords[[i]]$winningPercentage,
@@ -2184,5 +2227,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 
 # Example usage:
-# get_box_scores("2025", "07", "06")
+# get_box_scores("2025", "09", "22")
 
