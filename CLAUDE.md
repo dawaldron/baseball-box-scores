@@ -47,6 +47,7 @@ The main entry point `get_box_scores()` orchestrates the entire pipeline:
      - Linescore data (innings, runs)
      - Team franchise information
      - Player boxscore names and formatting
+     - Game metadata (umpires, game duration, attendance)
 
 2. **Standings & Leaders** (optional)
    - `get_standingsMLB`: Fetches division standings for AL/NL
@@ -94,6 +95,7 @@ The script uses several MLB Stats API endpoints:
 - Schedule: `http://statsapi.mlb.com/api/v1/schedule/games/`
 - Box scores: `http://statsapi.mlb.com/api/v1/game/{gameId}/boxscore`
 - Linescore: `http://statsapi.mlb.com/api/v1/game/{gameId}/linescore`
+- Game feed: `http://statsapi.mlb.com/api/v1.1/game/{gameId}/feed/live` (umpires, duration, attendance)
 - Team info: `http://statsapi.mlb.com/api/v1/teams/{teamId}`
 - Player info: `http://statsapi.mlb.com/api/v1/people/{playerId}`
 - Standings: `https://statsapi.mlb.com/api/v1/standings`
@@ -110,7 +112,9 @@ The GitHub Actions workflow deploys only the most recent day's files via FTP, ex
 
 ## Important Notes
 
-- The main script file is ~2100 lines, containing all core functionality for data collection, HTML/PDF generation, and deployment
+- The main script file is ~2200 lines, containing all core functionality for data collection, HTML/PDF generation, and deployment
 - Chrome/Chromium must be installed for PDF generation (chromote dependency)
 - The script handles games that finish early or have incomplete data
 - Player stats include both game stats and season-to-date stats for context
+- Each box score includes game metadata: umpires (with position codes H, 1, 2, 3), game duration, and attendance
+- When teams from the same city play each other (e.g., Yankees vs Mets), team names are used instead of city names in the line score to distinguish them
