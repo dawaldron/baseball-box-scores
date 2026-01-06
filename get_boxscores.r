@@ -1319,26 +1319,34 @@ generate_newspaper_page2 <- function(games_data, date_str,
       )
     }
     
+    # Use team names instead of city names when both teams are from the same city
+    visitor_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
+                              game$teams$visitor$name,
+                              game$teams$visitor$place)
+    home_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
+                           game$teams$home$name,
+                           game$teams$home$place)
+
     html_content <- paste0(
       html_content,
       "      <div class='game-container'>\n",
       "        <div class='game-header'>", game_title, "</div>\n",
       "        <div class='team-line'>\n",
-      "          <div class='team-name'>", game$teams$visitor$place, "</div>\n",
-      "          <div class='team-score'>", 
+      "          <div class='team-name'>", visitor_display, "</div>\n",
+      "          <div class='team-score'>",
       paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$visitor$line, collapse='')), "&mdash; ",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[1]))), "&numsp;",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[2]))), "&numsp;",
-            as.integer(game$teams$visitor$stats[3])), 
+            as.integer(game$teams$visitor$stats[3])),
       "          </div>\n",
       "        </div>\n",
       "        <div class='team-line'>\n",
-      "          <div class='team-name'>", game$teams$home$place, "</div>\n",
-      "          <div class='team-score'>", 
+      "          <div class='team-name'>", home_display, "</div>\n",
+      "          <div class='team-score'>",
       paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$home$line, collapse='')), "&mdash; ",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[1]))), "&numsp;",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[2]))), "&numsp;",
-            as.integer(game$teams$home$stats[3])), 
+            as.integer(game$teams$home$stats[3])),
       "          </div>\n",
       "        </div>\n"
     )
@@ -2176,5 +2184,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 
 # Example usage:
-# get_box_scores("2025", "06", "07")
+# get_box_scores("2025", "07", "06")
 
