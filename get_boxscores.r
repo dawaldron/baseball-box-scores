@@ -44,7 +44,12 @@ process_all_gamesMLB <- function(year, month, day) {
     resp_line <- GET(paste0('http://statsapi.mlb.com/api/v1/game/', gameId, '/linescore')) %>%
       content(as = 'text') %>%
       fromJSON()
-    
+
+    # Get game feed data for umpires, time, and attendance
+    resp_game <- GET(paste0('http://statsapi.mlb.com/api/v1.1/game/', gameId, '/feed/live')) %>%
+      content(as = 'text') %>%
+      fromJSON()
+
     resp_teamA <- GET(paste0('http://statsapi.mlb.com/', resp_box$teams$away$team$link)) %>%
       content(as = 'text') %>%
       fromJSON()
@@ -465,7 +470,42 @@ process_all_gamesMLB <- function(year, month, day) {
     for (i in 1:nrow(dt_bnMappingH)) {
       dt_pitchNote <- gsub(dt_bnMappingH[i, boxscoreName], dt_bnMappingH[i, boxscoreName2], dt_pitchNote, fixed = TRUE)
     }
-    
+
+    # Extract game time
+    c_gameTime <- tryCatch({
+      paste0(floor(resp_game$gameData$gameInfo$gameDurationMinutes / 60), 'h ', (resp_game$gameData$gameInfo$gameDurationMinutes %% 60), 'm')
+    }, error = function(e) "")
+
+    # Extract attendance
+    n_attendance <- tryCatch({
+      resp_game$gameData$gameInfo$attendance
+    }, error = function(e) NA)
+
+    # Extract umpires
+    c_umpires <- tryCatch({
+      officials <- resp_game$liveData$boxscore$officials
+      if (!is.null(officials) && nrow(officials) > 0) {
+        ump_strings <- sapply(1:nrow(officials), function(i) {
+          role <- officials[i,]$officialType
+          name <- officials[i,]$official$fullName
+          # Shorten role names
+          role_short <- switch(role,
+            "Home Plate" = "H",
+            "First Base" = "1",
+            "Second Base" = "2",
+            "Third Base" = "3",
+            "Left Field" = "L",
+            "Right Field" = "R",
+            role
+          )
+          paste0(role_short, "-", name)
+        })
+        paste0(ump_strings, collapse = ", ")
+      } else {
+        ""
+      }
+    }, error = function(e) "")
+
     list(
       teams = list(
         visitor = list(
@@ -492,6 +532,11 @@ process_all_gamesMLB <- function(year, month, day) {
         visitor = dt_apitch,
         home = dt_hpitch,
         notes = dt_pitchNote
+      ),
+      gameInfo = list(
+        gameTime = c_gameTime,
+        attendance = n_attendance,
+        umpires = c_umpires
       )
     )
   }
@@ -1478,11 +1523,32 @@ generate_newspaper_page2 <- function(games_data, date_str,
       "        </tbody>\n",
       "        </table>\n"
     )
+
+    # Game info (time, attendance, umpires)
+    c_gameInfoParts <- c()
+    if (!is.null(game$gameInfo$umpires) && nchar(game$gameInfo$umpires) > 0) {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0('<b> Umpires: </b>', game$gameInfo$umpires,'.'))
+    }
+    if (!is.null(game$gameInfo$gameTime) && nchar(game$gameInfo$gameTime) > 0 && game$gameInfo$gameTime != " ") {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> T: </b>", game$gameInfo$gameTime, '.'))
+    }
+    if (!is.null(game$gameInfo$attendance) && !is.na(game$gameInfo$attendance)) {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> A: </b>", format(game$gameInfo$attendance, big.mark = ","), '.'))
+    }
+    
+    gameInfoNotes <- ''
+    if (length(c_gameInfoParts) > 0) {
+      gameInfoNotes <- paste0(c_gameInfoParts, collapse = "")
+    }
     
     # Game notes
     html_content <- paste0(
       html_content,
-      "        <div class='notes'>", game$pitching$notes, "</div>\n",
+      "        <div class='notes'>", game$pitching$notes, gameInfoNotes, "</div>\n"
+    )
+
+    html_content <- paste0(
+      html_content,
       "      </div>\n"
     )
   }
@@ -2110,5 +2176,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 
 # Example usage:
-# games_data <- get_box_scores("2023", "06", "07")
+# get_box_scores("2025", "06", "07")
 
