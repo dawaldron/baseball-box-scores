@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baseball Box Scores - September 23, 2025</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+    body { font-family: 'Source Sans 3', 'Segoe UI'; margin: 0; padding: 0; background-color: #f9f7f1; }
+    .newspaper { max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .date { font-style: italic; margin-bottom: 10px; }
+    .main-title { font-size: 42px; font-weight: bold; margin: 0; }
+    .subtitle { font-size: 24px; margin: 5px 0 15px 0; }
+    .page { break-after: page; }
+    .nav-container { display: flex; justify-content: space-between; padding: 10px 0; margin: 10px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+    .leaders div { font-size: 14px; margin: 4px 0px; }
+    .leaders table { font-size: 14px; margin: 5px 0px; }
+    .boxscores-title { text-align: center; font-size: 24px; font-weight: bold; margin: 10px 0; border-bottom: 2px solid #000; }
+    .boxscores-container { column-count: 4; column-gap: 20px; margin-top: 20px; }
+    .game-container { break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; }
+    .game-header { font-weight: bold; font-size: 20px; border-bottom: 1px solid #000; }
+    .team-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; line-height: 1.2; margin-top: 2px; }
+    /* Improved table styling */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+    .batting tr:last-child { font-weight:700 }
+    th, td { text-align: left; overflow: hidden; line-height: 1.1; }
+    th { border-top: 1px solid #000; font-weight: bold; }
+    /* Specific column widths for standings tables */
+    .standings-table th { border: none; }
+    .standings-table .team-col { width: 20%; text-align: left; }
+    .standings-table .num-col { width: 5%; text-align: right; }
+    .standings-table .pct-col { width: 8%; text-align: right; }
+    /* General column alignment */
+    th:not(.team-col), td:not(.team-col) { text-align: right; }
+    td { white-space: nowrap; }
+    .notes { font-size: 14px; line-height: 1.2; padding: 4px 0; border-top: 1px black solid; }
+    .section { margin-bottom: 20px; }
+    .column-container { display: flex; gap: 15px; }
+    .column { flex: 1; }
+    .column-40 { width: 40%; }
+    .column-60 { width: 60%; }
+    .stats-header { font-size: 16px; font-weight: bold; margin: 8px 0; border-bottom: 1px solid #000; }
+    .stats-subheader { font-size: 14px; font-weight: bold; margin: 4px 0; border-bottom: 1px solid #000; }
+    /* Batting and pitching table styles */
+    .batting-table .player-col { width: 30%; text-align: left; }
+    .batting-table .stat-col { width: 5%; text-align: right; }
+    .batting-table .avg-col { width: 8%; text-align: right; }
+    .batting-table tr:last-child { font-weight:700 }
+    .pitching-table .player-col { width: 37%; text-align: left; }
+    .pitching-table .ip-col { width: 5%; text-align: right; }
+    .pitching-table .stat-col { width: 5%; text-align: right; }
+    .pitching-table .era-col { width: 10%; text-align: right; }
+    /* Leaders table styles */
+    .leaders-table th { border: none; }
+    .leaders-table .player-col { width: 30%; text-align: left; }
+    .leaders-table .stat-col { width: 5%; text-align: right; }
+    .leaders-table .avg-col { width: 8%; text-align: right; }
+    .leaders-section { margin-bottom: 20px; }
+    .leaders-note { font-size: 13px; margin: 5px 0; }
+    /* Games Schedule Section */
+    .games-section { margin-bottom: 20px; padding: 10px 0; border-top: 2px solid #000; }
+    .games-section .column-container { display: flex; gap: 20px; }
+    .games-left { width: 65%; }
+    .games-left-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+    .games-right { width: 35%; display: flex; flex-direction: column; gap: 15px; }
+    .games-section-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+    .game-score-line { font-size: 13px; line-height: 1.5; margin: 2px 0; }
+    .game-score-line .winner { font-weight: bold; }
+    .scheduled-game { padding-bottom: 4px; border-bottom: 1px dotted #000; }
+    .scheduled-game:last-child { border-bottom: none; }
+    .game-time { font-size: 12px; color: #666; }
+    .matchup { font-size: 14px; font-weight: bold; }
+    .pitchers { font-size: 12px; color: #333; }
+    .tomorrow-game { font-size: 13px; line-height: 1.6; }
+    /* Team Highlighting */
+    .standings-table .team-col { cursor: pointer; transition: background-color 0.2s; }
+    .standings-table .team-col:hover { background-color: #f0f0f0; }
+    .team-highlight { background-color: #fff3cd !important; }
+    .team-highlight-box { background-color: #fff9e6; outline: 2px solid #ffc107; }
+    .leaders-note span.team-highlight { padding: 0 2px; }
+  @media (min-width: 700px) and (max-width: 1000px) {
+    .main-title { font-size:32px; }
+    .subtitle { font-size:20px; }
+    .stats-subheader { font-size:16px; }
+    .game-header { font-size:26px; }
+    .boxscores-container { column-count: 1; column-gap: 10px; margin-top: 10px; }
+    .column-container { display: block }
+    table { font-size: 16px; }
+    .team-line { font-size: 20px; }
+    .leaders div { font-size: 16px; }
+    .leaders table { font-size: 16px; }
+    .leaders-note { font-size:16px; }
+    .notes { font-size: 16px; }
+    .column-40, .column-60 { width: 100%; }
+    .games-section .column-container { flex-direction: column; }
+    .games-left, .games-right { width: 100%; }
+    .games-left-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .main-title { font-size:28px; }
+    .subtitle { font-size:18px; }
+    .stats-subheader { font-size:14px; }
+    .game-header { font-size:22px; }
+    .boxscores-container { column-count: 1; column-gap: 10px; margin-top: 10px; }
+    .column-container { display: block }
+    table { font-size: 14px; }
+    .team-line { font-size: 18px; }
+    .leaders div { font-size: 14px; }
+    .leaders table { font-size: 14px; }
+    .leaders-note { font-size:14px; }
+    .notes { font-size: 14px; }
+    .column-40, .column-60 { width: 100%; }
+    .games-section .column-container { flex-direction: column; }
+    .games-left, .games-right { width: 100%; }
+    .games-left-inner { grid-template-columns: 1fr; }
+  }
+  @media print {
+      body { 
+        background-color: #fff;
+          width:1650px;
+      }
+      .newspaper { box-shadow: none; max-width: none; padding: 0; margin: 0; }
+      .nav-container { display: none; }
+      .column-container { display: flex; }
+      .boxscores-container { column-count: 5; }
+    }
+  </style>
+  <script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // Get current page filename (e.g., "20230607.html")
+      const currentPath = window.location.pathname;
+      const currentBasename = "20250923"; // "20230607"
+      const currentDir = currentPath.substring(0, currentPath.lastIndexOf("/") + 1);
+      
+      // Create navigation container
+      const navContainer = document.createElement("div");
+      navContainer.className = "nav-container";
+
+      // Create prev link placeholder
+      const prevLink = document.createElement("div");
+      prevLink.className = "prev-link";
+      prevLink.style.cssText = "flex: 1; text-align: left;";
+      prevLink.innerHTML = ""; // Initial loading text
+      
+      // Create pdf link placeholder
+      const pdfLink = document.createElement("div");
+      pdfLink.className = "pdf-link";
+      pdfLink.innerHTML = `<a href="20250923.pdf" style="color: #000; font-weight: bold;">pdf link</a>`;
+      
+      // Create next link placeholder
+      const nextLink = document.createElement("div");
+      nextLink.className = "next-link";
+      nextLink.style.cssText = "flex: 1; text-align: right;";
+      nextLink.innerHTML = ""; // Initial loading text
+      
+      // Add to container
+      navContainer.appendChild(prevLink);
+      navContainer.appendChild(pdfLink);
+      navContainer.appendChild(nextLink);
+      
+      // Insert navigation at the top and bottom of the content
+      const newspaperDiv = document.querySelector(".newspaper");
+      if (newspaperDiv) {
+        // Insert at top, after header
+        const header = document.querySelector(".header");
+        if (header) {
+          const topNav = navContainer.cloneNode(true);
+          header.after(topNav);
+        }
+        
+        // Insert at bottom
+        const bottomNav = navContainer.cloneNode(true);
+        newspaperDiv.appendChild(bottomNav);
+      }
+      
+      // Get all instances of the navigation elements
+      const prevLinks = document.querySelectorAll(".prev-link");
+      const nextLinks = document.querySelectorAll(".next-link");
+      
+      // Function to format a date string from YYYYMMDD to a display format
+      function formatDisplayDate(dateStr) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        
+        const date = new Date(Date.UTC(year, +month-1, day, 8, 0, 0));
+        return date.toLocaleDateString("en-US", {
+          year: "numeric", 
+          month: "long", 
+          day: "numeric"
+        });
+      }
+      
+      // Pure client-side approach to find adjacent pages
+      async function findAdjacentPages() {
+        // Generate arrays of possible dates to check, ordered by proximity
+        // For convenience in sorting and comparisons, we'll use YYYYMMDD format
+        const potentialPrevDates = [];
+        const potentialNextDates = [];
+        
+        // Parse the current date
+        const currentYear = parseInt(currentBasename.substring(0, 4));
+        const currentMonth = parseInt(currentBasename.substring(4, 6)) - 1; // JS months are 0-indexed
+        const currentDay = parseInt(currentBasename.substring(6, 8));
+        let checkDate = new Date(currentYear, currentMonth, currentDay);
+        
+        // Generate potential previous dates (12 days back)
+        for (let i = 1; i <= 12; i++) {
+          checkDate.setDate(checkDate.getDate() - 1);
+          const year = checkDate.getFullYear();
+          const month = String(checkDate.getMonth() + 1).padStart(2, "0");
+          const day = String(checkDate.getDate()).padStart(2, "0");
+          potentialPrevDates.push(`${year}${month}${day}`);
+        }
+        
+        // Reset date and generate potential next dates (12 days forward)
+        checkDate = new Date(currentYear, currentMonth, currentDay);
+        for (let i = 1; i <= 12; i++) {
+          checkDate.setDate(checkDate.getDate() + 1);
+          const year = checkDate.getFullYear();
+          const month = String(checkDate.getMonth() + 1).padStart(2, "0");
+          const day = String(checkDate.getDate()).padStart(2, "0");
+          potentialNextDates.push(`${year}${month}${day}`);
+        }
+        
+        // Check for the existence of files using fetch with HEAD requests
+        async function checkFileExists(filename) {
+          try {
+            // Build a full URL from the current location
+            const protocol = window.location.protocol;
+            const host = window.location.host;
+            const basePath = currentDir;
+            const fullUrl = `${protocol}//${host}${basePath}${filename}.html`;
+            
+            // Use GET request with cache control
+            const response = await fetch(fullUrl, { 
+              method: "GET",
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              mode: 'no-cors' // Try to avoid CORS issues
+            });
+            
+            return response.ok;
+          } catch (e) {
+            console.error("Error checking if file exists:", e);
+            return e.toString().includes("NetworkError") || e.toString().includes("Failed to fetch");
+          }
+        }
+        
+        // Find the first existing previous page
+        let foundPrev = false;
+        for (const dateStr of potentialPrevDates) {
+          if (await checkFileExists(dateStr)) {
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">« ${formatDisplayDate(dateStr)}</a>`;
+            // Update all prev link elements
+            prevLinks.forEach(el => {
+              el.innerHTML = linkHTML;
+            });
+            foundPrev = true;
+            break;
+          }
+        }
+        
+        if (!foundPrev) {
+          // Clear the loading text if no previous file was found
+          prevLinks.forEach(el => {
+            el.innerHTML = "";
+          });
+        }
+        
+        // Find the first existing next page
+        let foundNext = false;
+        for (const dateStr of potentialNextDates) {
+          if (await checkFileExists(dateStr)) {
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">${formatDisplayDate(dateStr)} »</a>`;
+            // Update all next link elements
+            nextLinks.forEach(el => {
+              el.innerHTML = linkHTML;
+            });
+            foundNext = true;
+            break;
+          }
+        }
+        
+        if (!foundNext) {
+          // Clear the loading text if no next file was found
+          nextLinks.forEach(el => {
+            el.innerHTML = "";
+          });
+        }
+      }
+      
+      // Start the process
+      findAdjacentPages();
+
+      // Team Highlighting Feature
+      let highlightedTeam = null;
+
+      function clearHighlights() {
+        document.querySelectorAll(".team-highlight, .team-highlight-box").forEach(el => {
+          el.classList.remove("team-highlight", "team-highlight-box");
+        });
+      }
+
+      function toggleTeamHighlight(team) {
+        // If clicking same team, unhighlight
+        if (highlightedTeam === team) {
+          clearHighlights();
+          highlightedTeam = null;
+          return;
+        }
+
+        // Clear existing highlights
+        clearHighlights();
+
+        // Set new highlighted team
+        highlightedTeam = team;
+
+        // Highlight standings rows with this team
+        document.querySelectorAll(`tr[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight leaders with this team
+        document.querySelectorAll(`span[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight box scores where team played (either home or away)
+        document.querySelectorAll(`.game-container[data-team-away="${team}"], .game-container[data-team-home="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight-box");
+        });
+
+        // Highlight games section entries
+        document.querySelectorAll(`[data-team-away="${team}"], [data-team-home="${team}"]`).forEach(el => {
+          if (!el.classList.contains("game-container")) {
+            el.classList.add("team-highlight");
+          }
+        });
+      }
+
+      // Add click handlers to standings team cells
+      document.querySelectorAll(".standings-table tr[data-team]").forEach(row => {
+        const teamCell = row.querySelector(".team-col");
+        if (teamCell) {
+          teamCell.addEventListener("click", function(e) {
+            e.preventDefault();
+            const team = row.getAttribute("data-team");
+            toggleTeamHighlight(team);
+          });
+        }
+      });
+    });
+    
+    </script>
+</head>
+<body>
+  <div class='newspaper'>
+    <div class='header'>
+      <div class='date'>September 23, 2025</div>
+      <h1 class='main-title'>WALDRN.COM/BOXSCORES</h1>
+      <div class='subtitle'>Daily MLB Standings & Box Scores</div>
+    </div>
+    <div class='page'>
+      <div class='section'>
+        <div class='column-container'>
+          <div class='column-40'>
+            <div class='boxscores-title'>A.L. Standings</div>
+            <div class='stats-subheader'>East Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='TOR'>
+                  <td class='team-col'>x-Toronto</td>
+                  <td class='num-col'>90</td>
+                  <td class='num-col'>66</td>
+                  <td class='pct-col'>.577</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>W1</td>
+                  <td class='pct-col'>50-25</td>
+                  <td class='pct-col'>40-41</td>
+                </tr>
+                <tr data-team='NYY'>
+                  <td class='team-col'>NY Yankees</td>
+                  <td class='num-col'>88</td>
+                  <td class='num-col'>68</td>
+                  <td class='pct-col'>.564</td>
+                  <td class='pct-col'>2.0</td>
+                  <td class='pct-col'>7-3</td>
+                  <td class='pct-col'>W2</td>
+                  <td class='pct-col'>44-31</td>
+                  <td class='pct-col'>44-37</td>
+                </tr>
+                <tr data-team='BOS'>
+                  <td class='team-col'>Boston</td>
+                  <td class='num-col'>85</td>
+                  <td class='num-col'>71</td>
+                  <td class='pct-col'>.545</td>
+                  <td class='pct-col'>5.0</td>
+                  <td class='pct-col'>4-6</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>46-32</td>
+                  <td class='pct-col'>39-39</td>
+                </tr>
+                <tr data-team='TB'>
+                  <td class='team-col'>Tampa Bay</td>
+                  <td class='num-col'>76</td>
+                  <td class='num-col'>80</td>
+                  <td class='pct-col'>.487</td>
+                  <td class='pct-col'>14.0</td>
+                  <td class='pct-col'>4-6</td>
+                  <td class='pct-col'>W1</td>
+                  <td class='pct-col'>41-40</td>
+                  <td class='pct-col'>35-40</td>
+                </tr>
+                <tr data-team='BAL'>
+                  <td class='team-col'>Baltimore</td>
+                  <td class='num-col'>73</td>
+                  <td class='num-col'>83</td>
+                  <td class='pct-col'>.468</td>
+                  <td class='pct-col'>17.0</td>
+                  <td class='pct-col'>4-6</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>37-41</td>
+                  <td class='pct-col'>36-42</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>Central Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='DET'>
+                  <td class='team-col'>Detroit</td>
+                  <td class='num-col'>85</td>
+                  <td class='num-col'>71</td>
+                  <td class='pct-col'>.545</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>1-9</td>
+                  <td class='pct-col'>L6</td>
+                  <td class='pct-col'>46-35</td>
+                  <td class='pct-col'>39-36</td>
+                </tr>
+                <tr data-team='CLE'>
+                  <td class='team-col'>Cleveland</td>
+                  <td class='num-col'>84</td>
+                  <td class='num-col'>72</td>
+                  <td class='pct-col'>.538</td>
+                  <td class='pct-col'>1.0</td>
+                  <td class='pct-col'>9-1</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>41-34</td>
+                  <td class='pct-col'>43-38</td>
+                </tr>
+                <tr data-team='KC'>
+                  <td class='team-col'>Kansas City</td>
+                  <td class='num-col'>78</td>
+                  <td class='num-col'>78</td>
+                  <td class='pct-col'>.500</td>
+                  <td class='pct-col'>7.0</td>
+                  <td class='pct-col'>4-6</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>43-38</td>
+                  <td class='pct-col'>35-40</td>
+                </tr>
+                <tr data-team='MIN'>
+                  <td class='team-col'>Minnesota</td>
+                  <td class='num-col'>67</td>
+                  <td class='num-col'>89</td>
+                  <td class='pct-col'>.429</td>
+                  <td class='pct-col'>18.0</td>
+                  <td class='pct-col'>3-7</td>
+                  <td class='pct-col'>W1</td>
+                  <td class='pct-col'>38-43</td>
+                  <td class='pct-col'>29-46</td>
+                </tr>
+                <tr data-team='CWS'>
+                  <td class='team-col'>Chi White Sox</td>
+                  <td class='num-col'>58</td>
+                  <td class='num-col'>98</td>
+                  <td class='pct-col'>.372</td>
+                  <td class='pct-col'>27.0</td>
+                  <td class='pct-col'>2-8</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>33-48</td>
+                  <td class='pct-col'>25-50</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>West Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='SEA'>
+                  <td class='team-col'>Seattle</td>
+                  <td class='num-col'>87</td>
+                  <td class='num-col'>69</td>
+                  <td class='pct-col'>.558</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>9-1</td>
+                  <td class='pct-col'>W4</td>
+                  <td class='pct-col'>48-27</td>
+                  <td class='pct-col'>39-42</td>
+                </tr>
+                <tr data-team='HOU'>
+                  <td class='team-col'>Houston</td>
+                  <td class='num-col'>84</td>
+                  <td class='num-col'>72</td>
+                  <td class='pct-col'>.538</td>
+                  <td class='pct-col'>3.0</td>
+                  <td class='pct-col'>5-5</td>
+                  <td class='pct-col'>L3</td>
+                  <td class='pct-col'>46-35</td>
+                  <td class='pct-col'>38-37</td>
+                </tr>
+                <tr data-team='TEX'>
+                  <td class='team-col'>Texas</td>
+                  <td class='num-col'>79</td>
+                  <td class='num-col'>77</td>
+                  <td class='pct-col'>.506</td>
+                  <td class='pct-col'>8.0</td>
+                  <td class='pct-col'>3-7</td>
+                  <td class='pct-col'>L7</td>
+                  <td class='pct-col'>47-31</td>
+                  <td class='pct-col'>32-46</td>
+                </tr>
+                <tr data-team='ATH'>
+                  <td class='team-col'>Athletics</td>
+                  <td class='num-col'>73</td>
+                  <td class='num-col'>83</td>
+                  <td class='pct-col'>.468</td>
+                  <td class='pct-col'>14.0</td>
+                  <td class='pct-col'>7-3</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>33-42</td>
+                  <td class='pct-col'>40-41</td>
+                </tr>
+                <tr data-team='LAA'>
+                  <td class='team-col'>LA Angels</td>
+                  <td class='num-col'>70</td>
+                  <td class='num-col'>86</td>
+                  <td class='pct-col'>.449</td>
+                  <td class='pct-col'>17.0</td>
+                  <td class='pct-col'>1-9</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>37-38</td>
+                  <td class='pct-col'>33-48</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='leaders-note' style='margin-top: 8px;'>x-clinched playoff berth</div>
+          </div>
+          <div class='column-60'>
+            <div class='boxscores-title'>A.L. LEADERS</div>
+            <div class='column-container leaders'>
+              <div class='column-40 leaders'>
+                <table class='leaders-table'>
+                  <thead>
+                    <tr>
+                      <th class='player-col'>Batting</th>
+                      <th class='stat-col'>G</th>
+                      <th class='stat-col'>AB</th>
+                      <th class='stat-col'>R</th>
+                      <th class='stat-col'>H</th>
+                      <th class='avg-col'>Avg.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Judge, NY Yankees</td>
+                      <td class='stat-col'>146</td>
+                      <td class='stat-col'>521</td>
+                      <td class='stat-col'>130</td>
+                      <td class='stat-col'>170</td>
+                      <td class='avg-col'>.326</td>
+                    </tr>
+                    <tr data-team='ATH'>
+                      <td class='player-col'>JWilson, Athletics</td>
+                      <td class='stat-col'>120</td>
+                      <td class='stat-col'>470</td>
+                      <td class='stat-col'>60</td>
+                      <td class='stat-col'>148</td>
+                      <td class='avg-col'>.315</td>
+                    </tr>
+                    <tr data-team='TOR'>
+                      <td class='player-col'>Bichette, Toronto</td>
+                      <td class='stat-col'>139</td>
+                      <td class='stat-col'>582</td>
+                      <td class='stat-col'>78</td>
+                      <td class='stat-col'>181</td>
+                      <td class='avg-col'>.311</td>
+                    </tr>
+                    <tr data-team='TOR'>
+                      <td class='player-col'>Springer, Toronto</td>
+                      <td class='stat-col'>134</td>
+                      <td class='stat-col'>475</td>
+                      <td class='stat-col'>101</td>
+                      <td class='stat-col'>146</td>
+                      <td class='avg-col'>.307</td>
+                    </tr>
+                    <tr data-team='HOU'>
+                      <td class='player-col'>Peña, Houston</td>
+                      <td class='stat-col'>125</td>
+                      <td class='stat-col'>493</td>
+                      <td class='stat-col'>68</td>
+                      <td class='stat-col'>150</td>
+                      <td class='avg-col'>.304</td>
+                    </tr>
+                    <tr data-team='TB'>
+                      <td class='player-col'>YDíaz, Tampa Bay</td>
+                      <td class='stat-col'>146</td>
+                      <td class='stat-col'>572</td>
+                      <td class='stat-col'>78</td>
+                      <td class='stat-col'>173</td>
+                      <td class='avg-col'>.302</td>
+                    </tr>
+                    <tr data-team='TOR'>
+                      <td class='player-col'>GuerreroJr, Toronto</td>
+                      <td class='stat-col'>150</td>
+                      <td class='stat-col'>566</td>
+                      <td class='stat-col'>94</td>
+                      <td class='stat-col'>169</td>
+                      <td class='avg-col'>.299</td>
+                    </tr>
+                    <tr data-team='KC'>
+                      <td class='player-col'>WittJr, Kansas City</td>
+                      <td class='stat-col'>151</td>
+                      <td class='stat-col'>595</td>
+                      <td class='stat-col'>96</td>
+                      <td class='stat-col'>174</td>
+                      <td class='avg-col'>.292</td>
+                    </tr>
+                    <tr data-team='KC'>
+                      <td class='player-col'>MGarcia, Kansas City</td>
+                      <td class='stat-col'>154</td>
+                      <td class='stat-col'>572</td>
+                      <td class='stat-col'>74</td>
+                      <td class='stat-col'>163</td>
+                      <td class='avg-col'>.285</td>
+                    </tr>
+                    <tr data-team='TOR'>
+                      <td class='player-col'>Kirk, Toronto</td>
+                      <td class='stat-col'>125</td>
+                      <td class='stat-col'>432</td>
+                      <td class='stat-col'>42</td>
+                      <td class='stat-col'>123</td>
+                      <td class='avg-col'>.285</td>
+                    </tr>
+                    <tr data-team='CLE'>
+                      <td class='player-col'>JoRamírez, Cleveland</td>
+                      <td class='stat-col'>152</td>
+                      <td class='stat-col'>571</td>
+                      <td class='stat-col'>100</td>
+                      <td class='stat-col'>161</td>
+                      <td class='avg-col'>.282</td>
+                    </tr>
+                    <tr data-team='TOR'>
+                      <td class='player-col'>Clement, Toronto</td>
+                      <td class='stat-col'>151</td>
+                      <td class='stat-col'>524</td>
+                      <td class='stat-col'>79</td>
+                      <td class='stat-col'>146</td>
+                      <td class='avg-col'>.279</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class='leaders-note'>
+                  <b>Home Runs: </b><span data-team='SEA'>Raleigh, Seattle, 58</span>; <span data-team='NYY'>Judge, NY Yankees, 49</span>; <span data-team='TB'>Caminero, Tampa Bay, 44</span>; <span data-team='LAA'>Adell, LA Angels, 36</span>; <span data-team='DET'>RGreene, Detroit, 34</span>; <span data-team='LAA'>Ward, LA Angels, 34</span>; <span data-team='NYY'>Grisham, NY Yankees, 33</span>; <span data-team='ATH'>Kurtz, Athletics, 33</span>
+                </div>
+                <div class='leaders-note'>                  <b>Runs Batted In: </b><span data-team='SEA'>Raleigh, Seattle, 121</span>; <span data-team='DET'>RGreene, Detroit, 109</span>; <span data-team='TB'>Caminero, Tampa Bay, 108</span>; <span data-team='KC'>Pasquantino, Kansas City, 107</span>; <span data-team='NYY'>Judge, NY Yankees, 105</span>; <span data-team='LAA'>Ward, LA Angels, 101</span>; <span data-team='NYY'>Bellinger, NY Yankees, 97</span>; <span data-team='LAA'>Adell, LA Angels, 96</span>; <span data-team='KC'>SPerez, Kansas City, 96</span>
+                </div>
+              </div>
+              <div class='column-60 leaders'>
+                <div class='leaders-note'>
+                  <b>Hits: </b><span data-team='TOR'>Bichette, Toronto, 181</span>; <span data-team='KC'>WittJr, Kansas City, 174</span>; <span data-team='TB'>YDíaz, Tampa Bay, 173</span>; <span data-team='SEA'>JRodríguez, Seattle, 171</span>; <span data-team='NYY'>Judge, NY Yankees, 170</span>; <span data-team='TOR'>GuerreroJr, Toronto, 169</span>; <span data-team='CLE'>Kwan, Cleveland, 166</span>; <span data-team='KC'>MGarcia, Kansas City, 163</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Stolen Bases: </b><span data-team='NYY'>Caballero, NY Yankees, 48</span>; <span data-team='TB'>Simpson, Tampa Bay, 43</span>; <span data-team='CLE'>JoRamírez, Cleveland, 40</span>; <span data-team='KC'>WittJr, Kansas City, 37</span>; <span data-team='CWS'>RobertJr, Chi White Sox, 33</span>; <span data-team='BOS'>Story, Boston, 31</span>; <span data-team='NYY'>ChisholmJr, NY Yankees, 30</span>; <span data-team='SEA'>Arozarena, Seattle, 28</span>; <span data-team='SEA'>JRodríguez, Seattle, 28</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Pitching: </b><span data-team='NYY'>Fried, NY Yankees, 18-5, .783</span>; <span data-team='BOS'>Crochet, Boston, 17-5, .773</span>; <span data-team='SEA'>Woo, Seattle, 15-7, .682</span>; <span data-team='DET'>Mize, Detroit, 14-6, .700</span>; <span data-team='DET'>Skubal, Detroit, 13-5, .722</span>; <span data-team='HOU'>HBrown, Houston, 12-8, .600</span>; <span data-team='TEX'>deGrom, Texas, 12-8, .600</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Strikeouts: </b><span data-team='BOS'>Crochet, Boston, 249</span>; <span data-team='DET'>Skubal, Detroit, 233</span>; <span data-team='HOU'>HBrown, Houston, 201</span>; <span data-team='NYY'>Rodón, NY Yankees, 198</span>; <span data-team='SEA'>Woo, Seattle, 198</span>; <span data-team='MIN'>Ryan, Minnesota, 185</span>; <span data-team='DET'>Flaherty, Detroit, 182</span>; <span data-team='NYY'>Fried, NY Yankees, 182</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Saves: </b><span data-team='KC'>Estévez, Kansas City, 41</span>; <span data-team='SEA'>AMuñoz, Seattle, 37</span>; <span data-team='TOR'>JHoffman, Toronto, 32</span>; <span data-team='BOS'>Chapman, Boston, 31</span>; <span data-team='HOU'>Hader, Houston, 28</span>; <span data-team='TB'>Fairbanks, Tampa Bay, 27</span>; <span data-team='LAA'>KJansen, LA Angels, 27</span>; <span data-team='CLE'>EClase, Cleveland, 24</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='section'>
+        <div class='column-container'>
+          <div class='column-40'>
+            <div class='boxscores-title'>N.L. Standings</div>
+            <div class='stats-subheader'>East Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='PHI'>
+                  <td class='team-col'>y-Philadelphia</td>
+                  <td class='num-col'>92</td>
+                  <td class='num-col'>64</td>
+                  <td class='pct-col'>.590</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>51-24</td>
+                  <td class='pct-col'>41-40</td>
+                </tr>
+                <tr data-team='NYM'>
+                  <td class='team-col'>NY Mets</td>
+                  <td class='num-col'>80</td>
+                  <td class='num-col'>76</td>
+                  <td class='pct-col'>.513</td>
+                  <td class='pct-col'>12.0</td>
+                  <td class='pct-col'>4-6</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>49-32</td>
+                  <td class='pct-col'>31-44</td>
+                </tr>
+                <tr data-team='MIA'>
+                  <td class='team-col'>Miami</td>
+                  <td class='num-col'>76</td>
+                  <td class='num-col'>80</td>
+                  <td class='pct-col'>.487</td>
+                  <td class='pct-col'>16.0</td>
+                  <td class='pct-col'>9-1</td>
+                  <td class='pct-col'>W6</td>
+                  <td class='pct-col'>36-42</td>
+                  <td class='pct-col'>40-38</td>
+                </tr>
+                <tr data-team='ATL'>
+                  <td class='team-col'>Atlanta</td>
+                  <td class='num-col'>74</td>
+                  <td class='num-col'>83</td>
+                  <td class='pct-col'>.471</td>
+                  <td class='pct-col'>18.5</td>
+                  <td class='pct-col'>9-1</td>
+                  <td class='pct-col'>W9</td>
+                  <td class='pct-col'>37-39</td>
+                  <td class='pct-col'>37-44</td>
+                </tr>
+                <tr data-team='WSH'>
+                  <td class='team-col'>Washington</td>
+                  <td class='num-col'>64</td>
+                  <td class='num-col'>93</td>
+                  <td class='pct-col'>.408</td>
+                  <td class='pct-col'>28.5</td>
+                  <td class='pct-col'>3-7</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>31-47</td>
+                  <td class='pct-col'>33-46</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>Central Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='MIL'>
+                  <td class='team-col'>y-Milwaukee</td>
+                  <td class='num-col'>95</td>
+                  <td class='num-col'>62</td>
+                  <td class='pct-col'>.605</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>L2</td>
+                  <td class='pct-col'>51-27</td>
+                  <td class='pct-col'>44-35</td>
+                </tr>
+                <tr data-team='CHC'>
+                  <td class='team-col'>w-Chi Cubs</td>
+                  <td class='num-col'>88</td>
+                  <td class='num-col'>68</td>
+                  <td class='pct-col'>.564</td>
+                  <td class='pct-col'>6.5</td>
+                  <td class='pct-col'>5-5</td>
+                  <td class='pct-col'>L4</td>
+                  <td class='pct-col'>46-29</td>
+                  <td class='pct-col'>42-39</td>
+                </tr>
+                <tr data-team='CIN'>
+                  <td class='team-col'>Cincinnati</td>
+                  <td class='num-col'>80</td>
+                  <td class='num-col'>76</td>
+                  <td class='pct-col'>.513</td>
+                  <td class='pct-col'>14.5</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>W5</td>
+                  <td class='pct-col'>44-34</td>
+                  <td class='pct-col'>36-42</td>
+                </tr>
+                <tr data-team='STL'>
+                  <td class='team-col'>St. Louis</td>
+                  <td class='num-col'>77</td>
+                  <td class='num-col'>80</td>
+                  <td class='pct-col'>.490</td>
+                  <td class='pct-col'>18.0</td>
+                  <td class='pct-col'>5-5</td>
+                  <td class='pct-col'>W2</td>
+                  <td class='pct-col'>44-37</td>
+                  <td class='pct-col'>33-43</td>
+                </tr>
+                <tr data-team='PIT'>
+                  <td class='team-col'>Pittsburgh</td>
+                  <td class='num-col'>67</td>
+                  <td class='num-col'>89</td>
+                  <td class='pct-col'>.429</td>
+                  <td class='pct-col'>27.5</td>
+                  <td class='pct-col'>3-7</td>
+                  <td class='pct-col'>W2</td>
+                  <td class='pct-col'>44-37</td>
+                  <td class='pct-col'>23-52</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>West Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='LAD'>
+                  <td class='team-col'>x-LA Dodgers</td>
+                  <td class='num-col'>88</td>
+                  <td class='num-col'>68</td>
+                  <td class='pct-col'>.564</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>52-29</td>
+                  <td class='pct-col'>36-39</td>
+                </tr>
+                <tr data-team='SD'>
+                  <td class='team-col'>x-San Diego</td>
+                  <td class='num-col'>86</td>
+                  <td class='num-col'>71</td>
+                  <td class='pct-col'>.548</td>
+                  <td class='pct-col'>2.5</td>
+                  <td class='pct-col'>6-4</td>
+                  <td class='pct-col'>W3</td>
+                  <td class='pct-col'>48-28</td>
+                  <td class='pct-col'>38-43</td>
+                </tr>
+                <tr data-team='AZ'>
+                  <td class='team-col'>Arizona</td>
+                  <td class='num-col'>79</td>
+                  <td class='num-col'>77</td>
+                  <td class='pct-col'>.506</td>
+                  <td class='pct-col'>9.0</td>
+                  <td class='pct-col'>7-3</td>
+                  <td class='pct-col'>W2</td>
+                  <td class='pct-col'>42-36</td>
+                  <td class='pct-col'>37-41</td>
+                </tr>
+                <tr data-team='SF'>
+                  <td class='team-col'>San Francisco</td>
+                  <td class='num-col'>77</td>
+                  <td class='num-col'>80</td>
+                  <td class='pct-col'>.490</td>
+                  <td class='pct-col'>11.5</td>
+                  <td class='pct-col'>2-8</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>38-38</td>
+                  <td class='pct-col'>39-42</td>
+                </tr>
+                <tr data-team='COL'>
+                  <td class='team-col'>Colorado</td>
+                  <td class='num-col'>43</td>
+                  <td class='num-col'>113</td>
+                  <td class='pct-col'>.276</td>
+                  <td class='pct-col'>45.0</td>
+                  <td class='pct-col'>3-7</td>
+                  <td class='pct-col'>W1</td>
+                  <td class='pct-col'>25-56</td>
+                  <td class='pct-col'>18-57</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='leaders-note' style='margin-top: 8px;'>w-clinched wild card; x-clinched playoff berth; y-clinched division</div>
+          </div>
+          <div class='column-60'>
+            <div class='boxscores-title'>N.L. LEADERS</div>
+            <div class='column-container leaders'>
+              <div class='column-40 leaders'>
+                <table class='leaders-table'>
+                  <thead>
+                    <tr>
+                      <th class='player-col'>Batting</th>
+                      <th class='stat-col'>G</th>
+                      <th class='stat-col'>AB</th>
+                      <th class='stat-col'>R</th>
+                      <th class='stat-col'>H</th>
+                      <th class='avg-col'>Avg.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-team='PHI'>
+                      <td class='player-col'>Turner, Philadelphia</td>
+                      <td class='stat-col'>140</td>
+                      <td class='stat-col'>587</td>
+                      <td class='stat-col'>94</td>
+                      <td class='stat-col'>179</td>
+                      <td class='avg-col'>.305</td>
+                    </tr>
+                    <tr data-team='CHC'>
+                      <td class='player-col'>Hoerner, Chi Cubs</td>
+                      <td class='stat-col'>150</td>
+                      <td class='stat-col'>572</td>
+                      <td class='stat-col'>82</td>
+                      <td class='stat-col'>171</td>
+                      <td class='avg-col'>.299</td>
+                    </tr>
+                    <tr data-team='STL'>
+                      <td class='player-col'>Burleson, St. Louis</td>
+                      <td class='stat-col'>135</td>
+                      <td class='stat-col'>482</td>
+                      <td class='stat-col'>54</td>
+                      <td class='stat-col'>141</td>
+                      <td class='avg-col'>.293</td>
+                    </tr>
+                    <tr data-team='LAD'>
+                      <td class='player-col'>FFreeman, LA Dodgers</td>
+                      <td class='stat-col'>142</td>
+                      <td class='stat-col'>541</td>
+                      <td class='stat-col'>76</td>
+                      <td class='stat-col'>158</td>
+                      <td class='avg-col'>.292</td>
+                    </tr>
+                    <tr data-team='MIL'>
+                      <td class='player-col'>Frelick, Milwaukee</td>
+                      <td class='stat-col'>137</td>
+                      <td class='stat-col'>511</td>
+                      <td class='stat-col'>76</td>
+                      <td class='stat-col'>149</td>
+                      <td class='avg-col'>.292</td>
+                    </tr>
+                    <tr data-team='AZ'>
+                      <td class='player-col'>Perdomo, Arizona</td>
+                      <td class='stat-col'>155</td>
+                      <td class='stat-col'>572</td>
+                      <td class='stat-col'>96</td>
+                      <td class='stat-col'>166</td>
+                      <td class='avg-col'>.290</td>
+                    </tr>
+                    <tr data-team='SD'>
+                      <td class='player-col'>Arraez, San Diego</td>
+                      <td class='stat-col'>150</td>
+                      <td class='stat-col'>605</td>
+                      <td class='stat-col'>62</td>
+                      <td class='stat-col'>173</td>
+                      <td class='avg-col'>.286</td>
+                    </tr>
+                    <tr data-team='MIL'>
+                      <td class='player-col'>Turang, Milwaukee</td>
+                      <td class='stat-col'>151</td>
+                      <td class='stat-col'>567</td>
+                      <td class='stat-col'>96</td>
+                      <td class='stat-col'>162</td>
+                      <td class='avg-col'>.286</td>
+                    </tr>
+                    <tr data-team='LAD'>
+                      <td class='player-col'>Ohtani, LA Dodgers</td>
+                      <td class='stat-col'>153</td>
+                      <td class='stat-col'>590</td>
+                      <td class='stat-col'>141</td>
+                      <td class='stat-col'>167</td>
+                      <td class='avg-col'>.283</td>
+                    </tr>
+                    <tr data-team='STL'>
+                      <td class='player-col'>Donovan, St. Louis</td>
+                      <td class='stat-col'>116</td>
+                      <td class='stat-col'>451</td>
+                      <td class='stat-col'>62</td>
+                      <td class='stat-col'>127</td>
+                      <td class='avg-col'>.282</td>
+                    </tr>
+                    <tr data-team='MIA'>
+                      <td class='player-col'>XEdwards, Miami</td>
+                      <td class='stat-col'>133</td>
+                      <td class='stat-col'>541</td>
+                      <td class='stat-col'>74</td>
+                      <td class='stat-col'>152</td>
+                      <td class='avg-col'>.281</td>
+                    </tr>
+                    <tr data-team='AZ'>
+                      <td class='player-col'>KMarte, Arizona</td>
+                      <td class='stat-col'>121</td>
+                      <td class='stat-col'>460</td>
+                      <td class='stat-col'>82</td>
+                      <td class='stat-col'>129</td>
+                      <td class='avg-col'>.280</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class='leaders-note'>
+                  <b>Home Runs: </b><span data-team='LAD'>Ohtani, LA Dodgers, 53</span>; <span data-team='PHI'>Schwarber, Philadelphia, 53</span>; <span data-team='NYM'>JSoto, NY Mets, 42</span>; <span data-team='NYM'>Alonso, NY Mets, 37</span>; <span data-team='AZ'>ESuárez, Arizona, 36</span>; <span data-team='AZ'>Carroll, Arizona, 31</span>; <span data-team='CHC'>Busch, Chi Cubs, 30</span>; <span data-team='COL'>Goodman, Colorado, 30</span>
+                </div>
+                <div class='leaders-note'>                  <b>Runs Batted In: </b><span data-team='PHI'>Schwarber, Philadelphia, 129</span>; <span data-team='NYM'>Alonso, NY Mets, 122</span>; <span data-team='NYM'>JSoto, NY Mets, 104</span>; <span data-team='MIL'>Yelich, Milwaukee, 102</span>; <span data-team='LAD'>Ohtani, LA Dodgers, 99</span>; <span data-team='AZ'>Perdomo, Arizona, 97</span>; <span data-team='SD'>MMachado, San Diego, 93</span>; <span data-team='ATL'>Olson, Atlanta, 93</span>
+                </div>
+              </div>
+              <div class='column-60 leaders'>
+                <div class='leaders-note'>
+                  <b>Hits: </b><span data-team='PHI'>Turner, Philadelphia, 179</span>; <span data-team='SD'>Arraez, San Diego, 173</span>; <span data-team='CHC'>Hoerner, Chi Cubs, 171</span>; <span data-team='LAD'>Ohtani, LA Dodgers, 167</span>; <span data-team='ATL'>Olson, Atlanta, 167</span>; <span data-team='NYM'>Lindor, NY Mets, 166</span>; <span data-team='SD'>MMachado, San Diego, 166</span>; <span data-team='AZ'>Perdomo, Arizona, 166</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Stolen Bases: </b><span data-team='PIT'>OCruz, Pittsburgh, 38</span>; <span data-team='CIN'>EDeLaCruz, Cincinnati, 36</span>; <span data-team='PHI'>Turner, Philadelphia, 36</span>; <span data-team='CHC'>Crow-Armstrong, Chi Cubs, 35</span>; <span data-team='NYM'>JSoto, NY Mets, 35</span>; <span data-team='STL'>ScottII, St. Louis, 33</span>; <span data-team='SD'>TatisJr, San Diego, 32</span>; <span data-team='WSH'>Abrams, Washington, 31</span>; <span data-team='NYM'>Lindor, NY Mets, 31</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Pitching: </b><span data-team='MIL'>FPeralta, Milwaukee, 17-6, .739</span>; <span data-team='PHI'>Luzardo, Philadelphia, 14-7, .667</span>; <span data-team='STL'>SGray, St. Louis, 14-8, .636</span>; <span data-team='MIL'>Priester, Milwaukee, 13-2, .867</span>; <span data-team='SD'>Morejon, San Diego, 13-5, .722</span>; <span data-team='SD'>Pivetta, San Diego, 13-5, .722</span>; <span data-team='PHI'>CSánchez, Philadelphia, 13-5, .722</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Strikeouts: </b><span data-team='SF'>LWebb, San Francisco, 211</span>; <span data-team='PIT'>Skenes, Pittsburgh, 209</span>; <span data-team='SD'>Cease, San Diego, 207</span>; <span data-team='PHI'>Luzardo, Philadelphia, 206</span>; <span data-team='MIL'>FPeralta, Milwaukee, 201</span>; <span data-team='PHI'>CSánchez, Philadelphia, 198</span>; <span data-team='PHI'>Wheeler, Philadelphia, 195</span>; <span data-team='STL'>SGray, St. Louis, 194</span>; <span data-team='LAD'>Yamamoto, LA Dodgers, 194</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Saves: </b><span data-team='SD'>RoSuarez, San Diego, 40</span>; <span data-team='MIL'>Megill, Milwaukee, 30</span>; <span data-team='CIN'>Pagán, Cincinnati, 29</span>; <span data-team='ATL'>RIglesias, Atlanta, 27</span>; <span data-team='NYM'>Díaz, NY Mets, 26</span>; <span data-team='CHC'>DPalencia, Chi Cubs, 22</span>; <span data-team='LAD'>TanScott, LA Dodgers, 22</span>; <span data-team='NYM'>Helsley, NY Mets, 21</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='page'>
+      <div class='games-section'>
+        <div class='column-container'>
+          <div class='games-left'>
+            <div class='games-section-title'>TODAY'S GAMES</div>
+            <div class='games-left-inner'>
+              <div class='scheduled-game' data-team-away='TB' data-team-home='BAL'>
+                <div class='game-time'>6:35 PM ET</div>
+                <div class='matchup'>Tampa Bay at Baltimore</div>
+                <div class='pitchers'>Pepiot (11-12, 3.86) vs. Kremer (11-10, 4.19)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='DET' data-team-home='CLE'>
+                <div class='game-time'>6:40 PM ET</div>
+                <div class='matchup'>Detroit at Cleveland</div>
+                <div class='pitchers'>Skubal (13-6, 2.21) vs. GWilliams (12-5, 3.06)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='PIT' data-team-home='CIN'>
+                <div class='game-time'>6:40 PM ET</div>
+                <div class='matchup'>Pittsburgh at Cincinnati</div>
+                <div class='pitchers'>Oviedo (2-1, 3.57) vs. Singer (14-12, 4.03)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='MIA' data-team-home='PHI'>
+                <div class='game-time'>6:45 PM ET</div>
+                <div class='matchup'>Miami at Philadelphia</div>
+                <div class='pitchers'>ECabrera (8-7, 3.53) vs. CSánchez (13-5, 2.50)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='CWS' data-team-home='NYY'>
+                <div class='game-time'>7:05 PM ET</div>
+                <div class='matchup'>Chi White Sox at NY Yankees</div>
+                <div class='pitchers'>SSmith (7-8, 3.81) vs. Gil (4-1, 3.32)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='BOS' data-team-home='TOR'>
+                <div class='game-time'>7:07 PM ET</div>
+                <div class='matchup'>Boston at Toronto</div>
+                <div class='pitchers'>Giolito (10-4, 3.41) vs. Gausman (10-11, 3.59)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='WSH' data-team-home='ATL'>
+                <div class='game-time'>7:15 PM ET</div>
+                <div class='matchup'>Washington at Atlanta</div>
+                <div class='pitchers'>Lord (5-10, 4.34) vs. Waldrep (6-1, 2.88)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='NYM' data-team-home='CHC'>
+                <div class='game-time'>7:40 PM ET</div>
+                <div class='matchup'>NY Mets at Chi Cubs</div>
+                <div class='pitchers'>DPeterson (9-6, 4.22) vs. Horton (11-4, 2.67)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='MIN' data-team-home='TEX'>
+                <div class='game-time'>8:05 PM ET</div>
+                <div class='matchup'>Minnesota at Texas</div>
+                <div class='pitchers'>Matthews (5-6, 5.56) vs. Corbin (7-11, 4.40)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='KC' data-team-home='LAA'>
+                <div class='game-time'>9:38 PM ET</div>
+                <div class='matchup'>Kansas City at LA Angels</div>
+                <div class='pitchers'>Ragans (3-3, 4.67) vs. Aldegheri (0-2, 7.90)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='LAD' data-team-home='AZ'>
+                <div class='game-time'>9:40 PM ET</div>
+                <div class='matchup'>LA Dodgers at Arizona</div>
+                <div class='pitchers'>Ohtani (1-1, 2.87) vs. Pfaadt (13-9, 5.25)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='COL' data-team-home='SEA'>
+                <div class='game-time'>9:40 PM ET</div>
+                <div class='matchup'>Colorado at Seattle</div>
+                <div class='pitchers'>MBrown (0-5, 7.36) vs. BMiller (4-6, 5.68)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='MIL' data-team-home='SD'>
+                <div class='game-time'>9:40 PM ET</div>
+                <div class='matchup'>Milwaukee at San Diego</div>
+                <div class='pitchers'>Zimmermann (0-1, 7.50) vs. RVásquez (6-7, 3.84)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='STL' data-team-home='SF'>
+                <div class='game-time'>9:45 PM ET</div>
+                <div class='matchup'>St. Louis at San Francisco</div>
+                <div class='pitchers'>Pallante (6-15, 5.31) vs. LWebb (15-11, 3.22)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='HOU' data-team-home='ATH'>
+                <div class='game-time'>10:05 PM ET</div>
+                <div class='matchup'>Houston at Athletics</div>
+                <div class='pitchers'>Javier (2-4, 4.62) vs. Springs (11-11, 4.11)</div>
+              </div>
+            </div>
+          </div>
+          <div class='games-right'>
+            <div>
+              <div class='games-section-title'>YESTERDAY'S SCORES</div>
+              <div class='game-score-line' data-team-away='WSH' data-team-home='ATL'>
+                <span class=''>Washington 5</span>, <span class='winner'>Atlanta 11</span>
+              </div>
+              <div class='game-score-line' data-team-away='MIL' data-team-home='SD'>
+                <span class=''>Milwaukee 4</span>, <span class='winner'>San Diego 5</span>
+              </div>
+              <div class='game-score-line' data-team-away='STL' data-team-home='SF'>
+                <span class='winner'>St. Louis 6</span>, <span class=''>San Francisco 5</span>
+              </div>
+            </div>
+            <div>
+              <div class='games-section-title'>TOMORROW'S GAMES</div>
+              <div class='tomorrow-game' data-team-away='WSH' data-team-home='ATL'>
+                Washington at Atlanta
+              </div>
+              <div class='tomorrow-game' data-team-away='MIL' data-team-home='SD'>
+                Milwaukee at San Diego
+              </div>
+              <div class='tomorrow-game' data-team-away='TB' data-team-home='BAL'>
+                Tampa Bay at Baltimore
+              </div>
+              <div class='tomorrow-game' data-team-away='DET' data-team-home='CLE'>
+                Detroit at Cleveland
+              </div>
+              <div class='tomorrow-game' data-team-away='PIT' data-team-home='CIN'>
+                Pittsburgh at Cincinnati
+              </div>
+              <div class='tomorrow-game' data-team-away='MIA' data-team-home='PHI'>
+                Miami at Philadelphia
+              </div>
+              <div class='tomorrow-game' data-team-away='CWS' data-team-home='NYY'>
+                Chi White Sox at NY Yankees
+              </div>
+              <div class='tomorrow-game' data-team-away='BOS' data-team-home='TOR'>
+                Boston at Toronto
+              </div>
+              <div class='tomorrow-game' data-team-away='NYM' data-team-home='CHC'>
+                NY Mets at Chi Cubs
+              </div>
+              <div class='tomorrow-game' data-team-away='MIN' data-team-home='TEX'>
+                Minnesota at Texas
+              </div>
+              <div class='tomorrow-game' data-team-away='KC' data-team-home='LAA'>
+                Kansas City at LA Angels
+              </div>
+              <div class='tomorrow-game' data-team-away='LAD' data-team-home='AZ'>
+                LA Dodgers at Arizona
+              </div>
+              <div class='tomorrow-game' data-team-away='COL' data-team-home='SEA'>
+                Colorado at Seattle
+              </div>
+              <div class='tomorrow-game' data-team-away='STL' data-team-home='SF'>
+                St. Louis at San Francisco
+              </div>
+              <div class='tomorrow-game' data-team-away='HOU' data-team-home='ATH'>
+                Houston at Athletics
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='page'>
+      <div class='boxscores-title'>YESTERDAY'S BOX SCORES</div>
+      <div class='boxscores-container'>
+        <div class='game-container' data-team-away='WSH' data-team-home='ATL'>
+          <div class='game-header'>Braves 11, Nationals 5</div>
+          <div class='team-line'>
+            <div class='team-name'>Washington</div>
+            <div class='team-score'>100&numsp;130&numsp;000&numsp; &mdash;  &numsp;5 &numsp; &numsp;8 &numsp; 0            </div>
+          </div>
+          <div class='team-line'>
+            <div class='team-name'>Atlanta</div>
+            <div class='team-score'>115&numsp;103&numsp;00x&numsp; &mdash;  11 &numsp; 14 &numsp; 0            </div>
+          </div>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Washington</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>NNuñez ss</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.233</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Abrams dh</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>3</td>
+              <td class='avg-col'>.259</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Chaparro 1b</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.188</td>
+            </tr>
+            <tr>
+              <td class='player-col'>RAdams c</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.190</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Crews rf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.215</td>
+            </tr>
+            <tr>
+              <td class='player-col'>DeJong 2b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.235</td>
+            </tr>
+            <tr>
+              <td class='player-col'>House 3b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.234</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Young cf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.232</td>
+            </tr>
+            <tr>
+              <td class='player-col'>HassellIII lf</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.223</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>34</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>8</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>9</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Atlanta</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>JProfar lf</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.256</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Olson 1b</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>4</td>
+              <td class='avg-col'>.276</td>
+            </tr>
+            <tr>
+              <td class='player-col'>AcuñaJr rf</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.285</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Albies 2b</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.240</td>
+            </tr>
+            <tr>
+              <td class='player-col'>a-NAllen ph-2b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.221</td>
+            </tr>
+            <tr>
+              <td class='player-col'>HKim ss</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.257</td>
+            </tr>
+            <tr>
+              <td class='player-col'>DBaldwin c</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.275</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Ozuna dh</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.233</td>
+            </tr>
+            <tr>
+              <td class='player-col'>HarrisII cf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.244</td>
+            </tr>
+            <tr>
+              <td class='player-col'>AlvarezJr 3b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.250</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>36</td>
+              <td class='stat-col'>11</td>
+              <td class='stat-col'>14</td>
+              <td class='stat-col'>11</td>
+              <td class='stat-col'>9</td>
+              <td class='stat-col'>8</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'>a-Struck out for Albies in the 3rd.<br><b>LOB:</b> Washington 8, Atlanta 13. <b>2B:</b> DBaldwin (16), HarrisII (25). <b>HR:</b> NNuñez (4), Crews (10), AcuñaJr (19). <b>RBIs:</b> NNuñez (13), Chaparro 3 (5), Crews (27), JProfar (43), AcuñaJr 2 (39), NAllen (22), DBaldwin 2 (78), Ozuna (66), HarrisII 3 (83), AlvarezJr (15). <b>SB:</b> HarrisII 3 (19). <b>GIDP:</b> Young, Ozuna. <b>DP:</b> Washington (DeJong-NNuñez-Chaparro), Atlanta (HKim-NAllen-Olson).</div>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Washington</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Gore (L, 5-15)</td>
+              <td class='ip-col'>2.0</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>71</td>
+              <td class='era-col'>4.17</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Rutledge</td>
+              <td class='ip-col'>0.1</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>33</td>
+              <td class='era-col'>5.80</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Pilkington</td>
+              <td class='ip-col'>0.2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>17</td>
+              <td class='era-col'>4.28</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Lao</td>
+              <td class='ip-col'>1.2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>29</td>
+              <td class='era-col'>6.23</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Poulin</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>33</td>
+              <td class='era-col'>3.80</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Ogasawara</td>
+              <td class='ip-col'>2.1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>29</td>
+              <td class='era-col'>6.94</td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Atlanta</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Sale (W, 6-5)</td>
+              <td class='ip-col'>5.0</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>80</td>
+              <td class='era-col'>2.63</td>
+            </tr>
+            <tr>
+              <td class='player-col'>HStratton (H, 3)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>16</td>
+              <td class='era-col'>5.50</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JSuarez (S, 1)</td>
+              <td class='ip-col'>3.0</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>43</td>
+              <td class='era-col'>1.96</td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'><b>HBP:</b> RAdams 2 (by Sale, by Sale); HassellIII (by Sale); JProfar (by Rutledge); AcuñaJr (by Lao).<b> Umpires: </b>H-Dan Iassogna, 1-Manny Gonzalez, 2-Tyler Jones, 3-CB Bucknor.<b> T: </b>3h 12m.<b> A: </b>35,248.</div>
+        </div>
+        <div class='game-container' data-team-away='MIL' data-team-home='SD'>
+          <div class='game-header'>Padres 5, Brewers 4</div>
+          <div class='team-line'>
+            <div class='team-name'>Milwaukee</div>
+            <div class='team-score'>030&numsp;000&numsp;000&numsp;10 &mdash;  &numsp;4 &numsp; &numsp;7 &numsp; 0            </div>
+          </div>
+          <div class='team-line'>
+            <div class='team-name'>San Diego</div>
+            <div class='team-score'>100&numsp;010&numsp;100&numsp;11 &mdash;  &numsp;5 &numsp; &numsp;9 &numsp; 1            </div>
+          </div>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Milwaukee</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Yelich dh</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.266</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JacChourio cf-lf</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.272</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Turang 2b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.286</td>
+            </tr>
+            <tr>
+              <td class='player-col'>WmContreras c</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.263</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Frelick rf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.292</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Vaughn 1b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.257</td>
+            </tr>
+            <tr>
+              <td class='player-col'>1-BPerkins pr-cf</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.228</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Collins lf</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.262</td>
+            </tr>
+            <tr>
+              <td class='player-col'>a-Bauers ph-1b</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.234</td>
+            </tr>
+            <tr>
+              <td class='player-col'>b-Hoskins ph</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.238</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Monasterio 1b</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.288</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Durbin 3b</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.265</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JOrtiz ss</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.231</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>39</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>7</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>8</td>
+              <td class='stat-col'>11</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Diego</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Arraez 1b</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.286</td>
+            </tr>
+            <tr>
+              <td class='player-col'>MMachado 3b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.274</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Merrill cf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.264</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Sheets dh</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.255</td>
+            </tr>
+            <tr>
+              <td class='player-col'>O'Hearn rf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.274</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Cronenworth 2b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.248</td>
+            </tr>
+            <tr>
+              <td class='player-col'>BJohnson lf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.358</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JIglesias ss</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.228</td>
+            </tr>
+            <tr>
+              <td class='player-col'>EDíaz c</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.202</td>
+            </tr>
+            <tr>
+              <td class='player-col'>a-Laureano ph</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.282</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Fermin c</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.263</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>39</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>9</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>10</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'>a-Flied out for Collins in the 8th. b-Struck out for Bauers in the 10th. 1-Ran for Vaughn in the 8th., a-Walked for Díaz, E in the 7th.<br><b>E:</b> JIglesias (5). <b>LOB:</b> Milwaukee 12, San Diego 11. <b>HR:</b> JIglesias (2). <b>RBIs:</b> Yelich 2 (102), Frelick (63), Durbin (53), Arraez (59), Sheets (70), JIglesias (33), Fermin (26). <b>SB:</b> Durbin (17). <b>SB:</b> JIglesias. <b>GIDP:</b> JacChourio. <b>DP:</b> San Diego (Cronenworth-Arraez).</div>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>Milwaukee</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>FPeralta</td>
+              <td class='ip-col'>5.0</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>76</td>
+              <td class='era-col'>2.68</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Ashby (H, 5)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>16</td>
+              <td class='era-col'>2.24</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Mears (BS, 6)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>22</td>
+              <td class='era-col'>3.62</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Koenig</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>19</td>
+              <td class='era-col'>2.95</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Uribe</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>10</td>
+              <td class='era-col'>1.72</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Zastryzny (BS, 1)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>17</td>
+              <td class='era-col'>2.49</td>
+            </tr>
+            <tr>
+              <td class='player-col'>GAnderson (L, 2-6)</td>
+              <td class='ip-col'>0.1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='era-col'>3.18</td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Diego</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Pivetta</td>
+              <td class='ip-col'>5.2</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>112</td>
+              <td class='era-col'>2.87</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Marinaccio</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>17</td>
+              <td class='era-col'>0.84</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Hart</td>
+              <td class='ip-col'>0.1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>7</td>
+              <td class='era-col'>5.62</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JEstrada</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>18</td>
+              <td class='era-col'>3.42</td>
+            </tr>
+            <tr>
+              <td class='player-col'>RoSuarez</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>16</td>
+              <td class='era-col'>3.01</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Morejon</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>14</td>
+              <td class='era-col'>2.01</td>
+            </tr>
+            <tr>
+              <td class='player-col'>BRodriguez (W, 1-0)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>13</td>
+              <td class='era-col'>1.69</td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'><b>IBB:</b> Yelich (by BRodriguez); MMachado (by Zastryzny).<b> Umpires: </b>H-Roberto Ortiz, 1-Ben May, 2-Chad Fairchild, 3-Bill Miller.<b> T: </b>3h 26m.<b> A: </b>42,371.</div>
+        </div>
+        <div class='game-container' data-team-away='STL' data-team-home='SF'>
+          <div class='game-header'>Cardinals 6, Giants 5</div>
+          <div class='team-line'>
+            <div class='team-name'>St. Louis</div>
+            <div class='team-score'>001&numsp;140&numsp;000&numsp; &mdash;  &numsp;6 &numsp; 10 &numsp; 1            </div>
+          </div>
+          <div class='team-line'>
+            <div class='team-name'>San Francisco</div>
+            <div class='team-score'>100&numsp;310&numsp;000&numsp; &mdash;  &numsp;5 &numsp; &numsp;7 &numsp; 2            </div>
+          </div>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>St. Louis</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Nootbaar lf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.236</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Herrera dh</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.281</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Burleson 1b</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.293</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Arenado 3b</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>3</td>
+              <td class='avg-col'>.236</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Saggese ss</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.260</td>
+            </tr>
+            <tr>
+              <td class='player-col'>PPagés c</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.232</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JWalker rf</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.217</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Fermín 2b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.315</td>
+            </tr>
+            <tr>
+              <td class='player-col'>ScottII cf</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.213</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>36</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>10</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>9</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Francisco</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Ramos lf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.258</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Devers 1b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.252</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Adames ss</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.224</td>
+            </tr>
+            <tr>
+              <td class='player-col'>MChapman 3b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.232</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Eldridge dh</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.059</td>
+            </tr>
+            <tr>
+              <td class='player-col'>1-Koss pr-dh</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.267</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Schmitt 2b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.233</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Bailey c</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.222</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Encarnacion rf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.208</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Gilbert cf</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.200</td>
+            </tr>
+            <tr>
+              <td class='player-col'>a-Flores ph</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.242</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>33</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>7</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>5</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'>a-Struck out for Gilbert in the 9th. 1-Ran for Eldridge in the 8th.<br><b>E:</b> Arenado (4), Schmitt (9), MChapman (13). <b>LOB:</b> St. Louis 9, San Francisco 5. <b>2B:</b> Arenado (18), Saggese (16), PPagés (15), Fermín 2 (5). <b>HR:</b> Herrera (18), Ramos (19), Devers (33). <b>RBIs:</b> Herrera 2 (62), Burleson (67), JWalker (38), Fermín (9), Ramos 3 (65), Devers (106), Bailey (54). <b>SB:</b> JWalker (9). <b>SB:</b> ScottII 2. <b>DP:</b> San Francisco (Adames-Bailey-MChapman-Schmitt).</div>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>St. Louis</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>McGreevy (W, 8-3)</td>
+              <td class='ip-col'>5.0</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>90</td>
+              <td class='era-col'>4.35</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Fernandez (H, 4)</td>
+              <td class='ip-col'>1.1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>11</td>
+              <td class='era-col'>7.62</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JKing (H, 3)</td>
+              <td class='ip-col'>0.2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>6</td>
+              <td class='era-col'>4.87</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Leahy (H, 18)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>21</td>
+              <td class='era-col'>3.21</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JRomero (S, 8)</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>19</td>
+              <td class='era-col'>2.09</td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Francisco</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Verlander (L, 3-11)</td>
+              <td class='ip-col'>4.1</td>
+              <td class='stat-col'>9</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>84</td>
+              <td class='era-col'>3.88</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Beck</td>
+              <td class='ip-col'>2.2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>33</td>
+              <td class='era-col'>4.86</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Gage</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>9</td>
+              <td class='era-col'>2.93</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JPeguero</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>11</td>
+              <td class='era-col'>2.79</td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'><b>IBB:</b> Herrera (by Gage).<b> Umpires: </b>H-Andy Fletcher, 1-Malachi Moore, 2-Paul Clemons, 3-Jansen Visconti.<b> T: </b>2h 33m.<b> A: </b>31,301.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

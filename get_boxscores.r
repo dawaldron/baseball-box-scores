@@ -10,7 +10,7 @@ library(chromote)
 
 
 formatBoxName <- function(x) {
-  c_bn2 <- 
+  c_bn2 <-
     ifelse(grepl(', ', x, fixed = TRUE),
            paste0(sapply(strsplit(x, ', '), '[', 2), ''),
            '') %>%
@@ -18,6 +18,152 @@ formatBoxName <- function(x) {
     gsub(' ', '', ., fixed = TRUE) %>%
     gsub('.', '', ., fixed = TRUE)
   return(c_bn2)
+}
+
+#' Format game time from UTC to Eastern Time
+#'
+#' @param datetime_str ISO 8601 datetime string (e.g., "2025-04-15T23:05:00Z")
+#' @return Formatted time string (e.g., "7:05 PM ET")
+format_game_time <- function(datetime_str) {
+  if (is.null(datetime_str) || is.na(datetime_str) || datetime_str == "") return("TBD")
+
+  tryCatch({
+    # Parse UTC time
+    utc_time <- as.POSIXct(datetime_str, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+    # Convert to Eastern Time
+    et_time <- format(utc_time, "%I:%M %p", tz = "America/New_York")
+
+    # Remove leading zero from hour
+    et_time <- sub("^0", "", et_time)
+
+    paste0(et_time, " ET")
+  }, error = function(e) "TBD")
+}
+
+#' Get pitcher season stats (W-L, ERA)
+#'
+#' @param pitcher_id Pitcher's MLB ID
+#' @param season Season year
+#' @return List with pitcher stats (name, wins, losses, era)
+get_pitcher_statsMLB <- function(pitcher_id, season) {
+  tryCatch({
+    resp <- GET(
+      paste0('https://statsapi.mlb.com/api/v1/people/', pitcher_id,
+             '?hydrate=currentTeam,stats(type=season,sportId=1,season=', season, ')')
+    ) %>%
+      content(as = 'text') %>%
+      fromJSON()
+
+    # Get boxscore name format
+    c_bn <- resp$people$boxscoreName
+    c_bn2 <- formatBoxName(c_bn)
+
+    # Extract season stats
+    stats <- tryCatch({
+      resp$people$stats[[1]]$splits[[1]]$stat
+    }, error = function(e) NULL)
+
+    if (is.null(stats)) {
+      return(list(name = c_bn2, wins = 0, losses = 0, era = "-.--"))
+    }
+
+    list(
+      name = c_bn2,
+      wins = ifelse(is.null(stats$wins), 0, stats$wins),
+      losses = ifelse(is.null(stats$losses), 0, stats$losses),
+      era = ifelse(is.null(stats$era), "-.--", stats$era)
+    )
+  }, error = function(e) {
+    list(name = "Unknown", wins = 0, losses = 0, era = "-.--")
+  })
+}
+
+#' Get scheduled games for a date with probable pitcher information
+#'
+#' @param date Date string in format YYYY-MM-DD
+#' @param include_pitchers Logical, whether to fetch pitcher stats
+#' @return List with games data
+get_scheduled_gamesMLB <- function(date, include_pitchers = TRUE) {
+  tryCatch({
+    season <- substr(date, 1, 4)
+
+    # Fetch schedule with probable pitchers hydrated
+    resp <- GET(
+      paste0('https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&gameType=R&date=',
+             date, '&hydrate=probablePitcher(note)')
+    ) %>%
+      content(as = 'text') %>%
+      fromJSON()
+
+    # Check if there are games
+    if (is.null(resp$dates) || length(resp$dates) == 0 || length(resp$dates$games) == 0) {
+      return(list())
+    }
+
+    games_df <- resp$dates$games[[1]]
+
+    if (nrow(games_df) == 0) return(list())
+
+    # Process each game
+    lapply(1:nrow(games_df), function(i) {
+      game <- games_df[i, ]
+
+      # Get team info
+      away_team_resp <- GET(paste0('https://statsapi.mlb.com', game$teams$away$team$link)) %>%
+        content(as = 'text') %>%
+        fromJSON()
+
+      home_team_resp <- GET(paste0('https://statsapi.mlb.com', game$teams$home$team$link)) %>%
+        content(as = 'text') %>%
+        fromJSON()
+
+      # Get probable pitcher info (if available and requested)
+      away_pitcher <- NULL
+      home_pitcher <- NULL
+
+      if (include_pitchers) {
+        if (!is.null(game$teams$away$probablePitcher$id) && !is.na(game$teams$away$probablePitcher$id)) {
+          away_pitcher <- get_pitcher_statsMLB(game$teams$away$probablePitcher$id, season)
+        }
+
+        if (!is.null(game$teams$home$probablePitcher$id) && !is.na(game$teams$home$probablePitcher$id)) {
+          home_pitcher <- get_pitcher_statsMLB(game$teams$home$probablePitcher$id, season)
+        }
+      }
+
+      # Parse and format game time
+      game_time <- format_game_time(game$gameDate)
+
+      # Check if game is final
+      is_final <- game$status$statusCode %in% c('F', 'FR', 'FO')
+
+      list(
+        gameId = game$gamePk,
+        gameTime = game_time,
+        gameTimeRaw = game$gameDate,
+        statusCode = game$status$statusCode,
+        isFinal = is_final,
+        away = list(
+          team = away_team_resp$teams$franchiseName,
+          shortName = away_team_resp$teams$shortName,
+          abbrev = away_team_resp$teams$abbreviation,
+          score = ifelse(is_final, game$teams$away$score, NA),
+          pitcher = away_pitcher
+        ),
+        home = list(
+          team = home_team_resp$teams$franchiseName,
+          shortName = home_team_resp$teams$shortName,
+          abbrev = home_team_resp$teams$abbreviation,
+          score = ifelse(is_final, game$teams$home$score, NA),
+          pitcher = home_pitcher
+        )
+      )
+    })
+  }, error = function(e) {
+    print(paste0("Error fetching scheduled games: ", e$message))
+    list()
+  })
 }
 
 #' Process all games for a given date
@@ -511,6 +657,7 @@ process_all_gamesMLB <- function(year, month, day) {
         visitor = list(
           name = resp_box$teams$away$team$teamName,
           place = c_franchiseNameA,
+          abbrev = resp_teamA$teams$abbreviation,
           score = resp_box$teams$away$teamStats$batting$runs,
           line = resp_line$innings$away$runs %>% as.character %>% ifelse(is.na(.), 'x', .),
           stats = dt_aStats
@@ -518,6 +665,7 @@ process_all_gamesMLB <- function(year, month, day) {
         home = list(
           name = resp_box$teams$home$team$teamName,
           place = c_franchiseNameH,
+          abbrev = resp_teamH$teams$abbreviation,
           score = resp_box$teams$home$teamStats$batting$runs,
           line = resp_line$innings$home$runs %>% as.character %>% ifelse(is.na(.), 'x', .),
           stats = dt_hStats
@@ -552,16 +700,34 @@ process_all_gamesMLB <- function(year, month, day) {
   return(all_games_data)
 }
 
+#' Format leaders list into HTML with data-team attributes
+#'
+#' @param leaders_list List of leader objects with Player, Team, Abbrev, Value
+#' @return HTML string with semicolon-separated leaders wrapped in spans
+format_leaders_html <- function(leaders_list) {
+  if (length(leaders_list) == 0) return("")
+
+  leader_strings <- sapply(leaders_list, function(leader) {
+    paste0("<span data-team='", leader$Abbrev, "'>",
+           leader$Player, ", ", leader$Team, ", ", leader$Value,
+           "</span>")
+  })
+
+  paste0(leader_strings, collapse = "; ")
+}
+
 #' Generate a newspaper-style HTML page with all box scores
-#' 
+#'
 #' @param games_data List of games' data
 #' @param date_str Date string for display
 #' @param standings_data Optional standings data.table
 #' @param leaders_data Optional league leaders data.table
+#' @param games_schedule_data Optional games schedule data (yesterday's scores, today's games, tomorrow's games)
 #' @return HTML content as a string
-generate_newspaper_page2 <- function(games_data, date_str, 
-                                    standings_data = NULL, 
-                                    leaders_data = NULL) {
+generate_newspaper_page2 <- function(games_data, date_str,
+                                    standings_data = NULL,
+                                    leaders_data = NULL,
+                                    games_schedule_data = NULL) {
   # Format date for display
   display_date <- format(as.Date(paste0(
     substr(date_str, 1, 4), "-",
@@ -739,9 +905,67 @@ generate_newspaper_page2 <- function(games_data, date_str,
       
       // Start the process
       findAdjacentPages();
+
+      // Team Highlighting Feature
+      let highlightedTeam = null;
+
+      function clearHighlights() {
+        document.querySelectorAll(".team-highlight, .team-highlight-box").forEach(el => {
+          el.classList.remove("team-highlight", "team-highlight-box");
+        });
+      }
+
+      function toggleTeamHighlight(team) {
+        // If clicking same team, unhighlight
+        if (highlightedTeam === team) {
+          clearHighlights();
+          highlightedTeam = null;
+          return;
+        }
+
+        // Clear existing highlights
+        clearHighlights();
+
+        // Set new highlighted team
+        highlightedTeam = team;
+
+        // Highlight standings rows with this team
+        document.querySelectorAll(`tr[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight leaders with this team
+        document.querySelectorAll(`span[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight box scores where team played (either home or away)
+        document.querySelectorAll(`.game-container[data-team-away="${team}"], .game-container[data-team-home="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight-box");
+        });
+
+        // Highlight games section entries
+        document.querySelectorAll(`[data-team-away="${team}"], [data-team-home="${team}"]`).forEach(el => {
+          if (!el.classList.contains("game-container")) {
+            el.classList.add("team-highlight");
+          }
+        });
+      }
+
+      // Add click handlers to standings team cells
+      document.querySelectorAll(".standings-table tr[data-team]").forEach(row => {
+        const teamCell = row.querySelector(".team-col");
+        if (teamCell) {
+          teamCell.addEventListener("click", function(e) {
+            e.preventDefault();
+            const team = row.getAttribute("data-team");
+            toggleTeamHighlight(team);
+          });
+        }
+      });
     });
     ')
-  
+
   # Start HTML content
   html_content <- paste0(
     "<!DOCTYPE html>\n",
@@ -804,6 +1028,27 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    .leaders-table .avg-col { width: 8%; text-align: right; }\n",
     "    .leaders-section { margin-bottom: 20px; }\n",
     "    .leaders-note { font-size: 13px; margin: 5px 0; }\n",
+    "    /* Games Schedule Section */\n",
+    "    .games-section { margin-bottom: 20px; padding: 10px 0; border-top: 2px solid #000; }\n",
+    "    .games-section .column-container { display: flex; gap: 20px; }\n",
+    "    .games-left { width: 65%; }\n",
+    "    .games-left-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }\n",
+    "    .games-right { width: 35%; display: flex; flex-direction: column; gap: 15px; }\n",
+    "    .games-section-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }\n",
+    "    .game-score-line { font-size: 13px; line-height: 1.5; margin: 2px 0; }\n",
+    "    .game-score-line .winner { font-weight: bold; }\n",
+    "    .scheduled-game { padding-bottom: 4px; border-bottom: 1px dotted #000; }\n",
+    "    .scheduled-game:last-child { border-bottom: none; }\n",
+    "    .game-time { font-size: 12px; color: #666; }\n",
+    "    .matchup { font-size: 14px; font-weight: bold; }\n",
+    "    .pitchers { font-size: 12px; color: #333; }\n",
+    "    .tomorrow-game { font-size: 13px; line-height: 1.6; }\n",
+    "    /* Team Highlighting */\n",
+    "    .standings-table .team-col { cursor: pointer; transition: background-color 0.2s; }\n",
+    "    .standings-table .team-col:hover { background-color: #f0f0f0; }\n",
+    "    .team-highlight { background-color: #fff3cd !important; }\n",
+    "    .team-highlight-box { background-color: #fff9e6; outline: 2px solid #ffc107; }\n",
+    "    .leaders-note span.team-highlight { padding: 0 2px; }\n",
     "  @media (min-width: 700px) and (max-width: 1000px) {\n",
     "    .main-title { font-size:32px; }\n",
     "    .subtitle { font-size:20px; }\n",
@@ -818,6 +1063,9 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    .leaders-note { font-size:16px; }\n",
     "    .notes { font-size: 16px; }\n",
     "    .column-40, .column-60 { width: 100%; }\n",
+    "    .games-section .column-container { flex-direction: column; }\n",
+    "    .games-left, .games-right { width: 100%; }\n",
+    "    .games-left-inner { grid-template-columns: 1fr; }\n",
     "  }\n",
     "  @media (max-width: 700px) {\n",
     "    .main-title { font-size:28px; }\n",
@@ -833,7 +1081,10 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    .leaders-note { font-size:14px; }\n",
     "    .notes { font-size: 14px; }\n",
     "    .column-40, .column-60 { width: 100%; }\n",
-    "  } \n",
+    "    .games-section .column-container { flex-direction: column; }\n",
+    "    .games-left, .games-right { width: 100%; }\n",
+    "    .games-left-inner { grid-template-columns: 1fr; }\n",
+    "  }\n",
     "  @media print {\n",
     "      body { \n",
     "        background-color: #fff;\n",
@@ -852,7 +1103,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    <div class='header'>\n",
     "      <div class='date'>", display_date, "</div>\n",
     "      <h1 class='main-title'>WALDRN.COM/BOXSCORES</h1>\n",
-    "      <div class='subtitle'>Daily Box Scores, Standings & League Leaders</div>\n",
+    "      <div class='subtitle'>Daily MLB Standings & Box Scores</div>\n",
     "    </div>\n",
     "    <div class='page'>\n"
   )
@@ -892,7 +1143,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$al[[1]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -937,7 +1188,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$al[[2]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -982,7 +1233,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$al[[3]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -1039,7 +1290,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- leaders_data$al_leaders$batting$avg_leaders[i,]
       html_content <- paste0(
         html_content,
-        "                    <tr>\n",
+        "                    <tr data-team='", row$Abbrev, "'>\n",
         "                      <td class='player-col'>", row$Player, ', ', row$Team, "</td>\n",
         "                      <td class='stat-col'>", row$G, "</td>\n",
         "                      <td class='stat-col'>", row$AB, "</td>\n",
@@ -1055,27 +1306,27 @@ generate_newspaper_page2 <- function(games_data, date_str,
       "                  </tbody>\n",
       "                </table>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Home Runs: </b>", leaders_data$al_leaders$batting$hr_leaders, '\n',
+      "                  <b>Home Runs: </b>", format_leaders_html(leaders_data$al_leaders$batting$hr_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>",
-      "                  <b>Runs Batted In: </b>", leaders_data$al_leaders$batting$rbi_leaders, '\n',
+      "                  <b>Runs Batted In: </b>", format_leaders_html(leaders_data$al_leaders$batting$rbi_leaders), '\n',
       "                </div>\n",
       "              </div>\n",
       "              <div class='column-60 leaders'>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Hits: </b>", leaders_data$al_leaders$batting$hits_leaders, '\n',
+      "                  <b>Hits: </b>", format_leaders_html(leaders_data$al_leaders$batting$hits_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Stolen Bases: </b>", leaders_data$al_leaders$batting$sb_leaders, '\n',
+      "                  <b>Stolen Bases: </b>", format_leaders_html(leaders_data$al_leaders$batting$sb_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Pitching: </b>", leaders_data$al_leaders$pitching$wins_leaders, '\n',
+      "                  <b>Pitching: </b>", format_leaders_html(leaders_data$al_leaders$pitching$wins_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Strikeouts: </b>", leaders_data$al_leaders$pitching$so_leaders, '\n',
+      "                  <b>Strikeouts: </b>", format_leaders_html(leaders_data$al_leaders$pitching$so_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Saves: </b>", leaders_data$al_leaders$pitching$sv_leaders, '\n',
+      "                  <b>Saves: </b>", format_leaders_html(leaders_data$al_leaders$pitching$sv_leaders), '\n',
       "                </div>\n",
       "              </div>\n",
       "            </div>\n",
@@ -1121,7 +1372,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$nl[[1]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -1167,7 +1418,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$nl[[2]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -1213,7 +1464,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- standings_data$nl[[3]][i,]
       html_content <- paste0(
         html_content,
-        "                <tr>\n",
+        "                <tr data-team='", row$Abbrev, "'>\n",
         "                  <td class='team-col'>", row$Team, "</td>\n",
         "                  <td class='num-col'>", row$W, "</td>\n",
         "                  <td class='num-col'>", row$L, "</td>\n",
@@ -1270,7 +1521,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
       row <- leaders_data$nl_leaders$batting$avg_leaders[i,]
       html_content <- paste0(
         html_content,
-        "                    <tr>\n",
+        "                    <tr data-team='", row$Abbrev, "'>\n",
         "                      <td class='player-col'>", row$Player, ', ', row$Team, "</td>\n",
         "                      <td class='stat-col'>", row$G, "</td>\n",
         "                      <td class='stat-col'>", row$AB, "</td>\n",
@@ -1286,42 +1537,147 @@ generate_newspaper_page2 <- function(games_data, date_str,
       "                  </tbody>\n",
       "                </table>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Home Runs: </b>", leaders_data$nl_leaders$batting$hr_leaders, '\n',
+      "                  <b>Home Runs: </b>", format_leaders_html(leaders_data$nl_leaders$batting$hr_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>",
-      "                  <b>Runs Batted In: </b>", leaders_data$nl_leaders$batting$rbi_leaders, '\n',
+      "                  <b>Runs Batted In: </b>", format_leaders_html(leaders_data$nl_leaders$batting$rbi_leaders), '\n',
       "                </div>\n",
       "              </div>\n",
       "              <div class='column-60 leaders'>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Hits: </b>", leaders_data$nl_leaders$batting$hits_leaders, '\n',
+      "                  <b>Hits: </b>", format_leaders_html(leaders_data$nl_leaders$batting$hits_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Stolen Bases: </b>", leaders_data$nl_leaders$batting$sb_leaders, '\n',
+      "                  <b>Stolen Bases: </b>", format_leaders_html(leaders_data$nl_leaders$batting$sb_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Pitching: </b>", leaders_data$nl_leaders$pitching$wins_leaders, '\n',
+      "                  <b>Pitching: </b>", format_leaders_html(leaders_data$nl_leaders$pitching$wins_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Strikeouts: </b>", leaders_data$nl_leaders$pitching$so_leaders, '\n',
+      "                  <b>Strikeouts: </b>", format_leaders_html(leaders_data$nl_leaders$pitching$so_leaders), '\n',
       "                </div>\n",
       "                <div class='leaders-note'>\n",
-      "                  <b>Saves: </b>", leaders_data$nl_leaders$pitching$sv_leaders, '\n',
+      "                  <b>Saves: </b>", format_leaders_html(leaders_data$nl_leaders$pitching$sv_leaders), '\n',
       "                </div>\n",
       "              </div>\n",
+      "            </div>\n",
+      "          </div>\n",
+      "        </div>\n",
+      "      </div>\n",
+      "    </div>\n"
+    )
+  }
+
+  # Add games schedule section if available
+  if (!is.null(games_schedule_data)) {
+    html_content <- paste0(
+      html_content,
+      "    <div class='page'>\n",
+      "      <div class='games-section'>\n",
+      "        <div class='column-container'>\n",
+      "          <div class='games-left'>\n",
+      "            <div class='games-section-title'>TODAY'S GAMES</div>\n",
+      "            <div class='games-left-inner'>\n"
+    )
+
+    # Today's games with pitchers
+    if (length(games_schedule_data$today) > 0) {
+      for (game in games_schedule_data$today) {
+        # Format pitcher info
+        away_pitcher_str <- if (!is.null(game$away$pitcher)) {
+          paste0(game$away$pitcher$name, " (", game$away$pitcher$wins, "-",
+                 game$away$pitcher$losses, ", ", game$away$pitcher$era, ")")
+        } else {
+          "TBD"
+        }
+
+        home_pitcher_str <- if (!is.null(game$home$pitcher)) {
+          paste0(game$home$pitcher$name, " (", game$home$pitcher$wins, "-",
+                 game$home$pitcher$losses, ", ", game$home$pitcher$era, ")")
+        } else {
+          "TBD"
+        }
+
+        html_content <- paste0(
+          html_content,
+          "              <div class='scheduled-game' data-team-away='", game$away$abbrev,
+          "' data-team-home='", game$home$abbrev, "'>\n",
+          "                <div class='game-time'>", game$gameTime, "</div>\n",
+          "                <div class='matchup'>", game$away$shortName, " at ", game$home$shortName, "</div>\n",
+          "                <div class='pitchers'>", away_pitcher_str, " vs. ", home_pitcher_str, "</div>\n",
+          "              </div>\n"
+        )
+      }
+    } else {
+      html_content <- paste0(html_content, "              <div>No games scheduled</div>\n")
+    }
+
+    html_content <- paste0(
+      html_content,
+      "            </div>\n",
+      "          </div>\n",
+      "          <div class='games-right'>\n",
+      "            <div>\n",
+      "              <div class='games-section-title'>YESTERDAY'S SCORES</div>\n"
+    )
+
+    # Yesterday's scores
+    if (length(games_schedule_data$yesterday) > 0) {
+      for (game in games_schedule_data$yesterday) {
+        winner <- if (game$away_score > game$home_score) "away" else "home"
+        html_content <- paste0(
+          html_content,
+          "              <div class='game-score-line' data-team-away='", game$away_abbrev,
+          "' data-team-home='", game$home_abbrev, "'>\n",
+          "                <span class='", ifelse(winner == "away", "winner", ""), "'>",
+          game$away_team, " ", game$away_score, "</span>, ",
+          "<span class='", ifelse(winner == "home", "winner", ""), "'>",
+          game$home_team, " ", game$home_score, "</span>\n",
+          "              </div>\n"
+        )
+      }
+    } else {
+      html_content <- paste0(html_content, "              <div>No games</div>\n")
+    }
+
+    html_content <- paste0(
+      html_content,
+      "            </div>\n",
+      "            <div>\n",
+      "              <div class='games-section-title'>TOMORROW'S GAMES</div>\n"
+    )
+
+    # Tomorrow's games
+    if (length(games_schedule_data$tomorrow) > 0) {
+      for (game in games_schedule_data$tomorrow) {
+        html_content <- paste0(
+          html_content,
+          "              <div class='tomorrow-game' data-team-away='", game$away$abbrev,
+          "' data-team-home='", game$home$abbrev, "'>\n",
+          "                ", game$away$shortName, " at ", game$home$shortName, "\n",
+          "              </div>\n"
+        )
+      }
+    } else {
+      html_content <- paste0(html_content, "              <div>No games scheduled</div>\n")
+    }
+
+    html_content <- paste0(
+      html_content,
       "            </div>\n",
       "          </div>\n",
       "        </div>\n",
       "      </div>\n"
     )
   }
-  
+
   # Add box scores section
   html_content <- paste0(
     html_content,
     "    </div>\n",
-    "    <div class='boxscores-title'>BOX SCORES</div>\n",
-    "    <div class='boxscores-container'>\n"
+    "    <div class='page'>\n",
+    "      <div class='boxscores-title'>YESTERDAY'S BOX SCORES</div>\n",
+    "      <div class='boxscores-container'>\n"
   )
   
   # Add each game box score
@@ -1351,45 +1707,46 @@ generate_newspaper_page2 <- function(games_data, date_str,
 
     html_content <- paste0(
       html_content,
-      "      <div class='game-container'>\n",
-      "        <div class='game-header'>", game_title, "</div>\n",
-      "        <div class='team-line'>\n",
-      "          <div class='team-name'>", visitor_display, "</div>\n",
-      "          <div class='team-score'>",
+      "        <div class='game-container' data-team-away='", game$teams$visitor$abbrev,
+      "' data-team-home='", game$teams$home$abbrev, "'>\n",
+      "          <div class='game-header'>", game_title, "</div>\n",
+      "          <div class='team-line'>\n",
+      "            <div class='team-name'>", visitor_display, "</div>\n",
+      "            <div class='team-score'>",
       paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$visitor$line, collapse='')), "&mdash; ",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[1]))), "&numsp;",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[2]))), "&numsp;",
             as.integer(game$teams$visitor$stats[3])),
+      "            </div>\n",
       "          </div>\n",
-      "        </div>\n",
-      "        <div class='team-line'>\n",
-      "          <div class='team-name'>", home_display, "</div>\n",
-      "          <div class='team-score'>",
+      "          <div class='team-line'>\n",
+      "            <div class='team-name'>", home_display, "</div>\n",
+      "            <div class='team-score'>",
       paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$home$line, collapse='')), "&mdash; ",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[1]))), "&numsp;",
             gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[2]))), "&numsp;",
             as.integer(game$teams$home$stats[3])),
-      "          </div>\n",
-      "        </div>\n"
+      "            </div>\n",
+      "          </div>\n"
     )
     
     # Visitor batting
     html_content <- paste0(
       html_content,
-      "        <table class='batting-table'>\n",
-      "        <thead>\n",
-      "          <tr>\n",
-      "            <th class='player-col'>", game$teams$visitor$place, "</th>\n",
-      "            <th class='stat-col'>AB</th>\n",
-      "            <th class='stat-col'>R</th>\n",
-      "            <th class='stat-col'>H</th>\n",
-      "            <th class='stat-col'>BI</th>\n",
-      "            <th class='stat-col'>BB</th>\n",
-      "            <th class='stat-col'>SO</th>\n",
-      "            <th class='avg-col'>Avg</th>\n",
-      "          </tr>\n",
-      "        </thead>\n",
-      "        <tbody>\n"
+      "          <table class='batting-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
+      "              <th class='stat-col'>AB</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>BI</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='avg-col'>Avg</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
     )
     
     # Add visitor batting rows
@@ -1398,42 +1755,42 @@ generate_newspaper_page2 <- function(games_data, date_str,
       player_name <- names(row)[1] # First column name is team place
       html_content <- paste0(
         html_content,
-        "          <tr>\n",
-        "            <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "            <td class='stat-col'>", row$AB, "</td>\n",
-        "            <td class='stat-col'>", row$R, "</td>\n",
-        "            <td class='stat-col'>", row$H, "</td>\n",
-        "            <td class='stat-col'>", row$BI, "</td>\n",
-        "            <td class='stat-col'>", row$BB, "</td>\n",
-        "            <td class='stat-col'>", row$SO, "</td>\n",
-        "            <td class='avg-col'>", row$Avg, "</td>\n",
-        "          </tr>\n"
+        "            <tr>\n",
+        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
+        "              <td class='stat-col'>", row$AB, "</td>\n",
+        "              <td class='stat-col'>", row$R, "</td>\n",
+        "              <td class='stat-col'>", row$H, "</td>\n",
+        "              <td class='stat-col'>", row$BI, "</td>\n",
+        "              <td class='stat-col'>", row$BB, "</td>\n",
+        "              <td class='stat-col'>", row$SO, "</td>\n",
+        "              <td class='avg-col'>", row$Avg, "</td>\n",
+        "            </tr>\n"
       )
     }
     
     html_content <- paste0(
       html_content,
-      "        </tbody>\n",
-      "        </table>\n"
+      "          </tbody>\n",
+      "          </table>\n"
     )
     
     # Home batting
     html_content <- paste0(
       html_content,
-      "        <table class='batting-table'>\n",
-      "        <thead>\n",
-      "          <tr>\n",
-      "            <th class='player-col'>", game$teams$home$place, "</th>\n",
-      "            <th class='stat-col'>AB</th>\n",
-      "            <th class='stat-col'>R</th>\n",
-      "            <th class='stat-col'>H</th>\n",
-      "            <th class='stat-col'>BI</th>\n",
-      "            <th class='stat-col'>BB</th>\n",
-      "            <th class='stat-col'>SO</th>\n",
-      "            <th class='avg-col'>Avg</th>\n",
-      "          </tr>\n",
-      "        </thead>\n",
-      "        <tbody>\n"
+      "          <table class='batting-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
+      "              <th class='stat-col'>AB</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>BI</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='avg-col'>Avg</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
     )
     
     # Add home batting rows
@@ -1442,44 +1799,44 @@ generate_newspaper_page2 <- function(games_data, date_str,
       player_name <- names(row)[1] # First column name is team place
       html_content <- paste0(
         html_content,
-        "          <tr>\n",
-        "            <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "            <td class='stat-col'>", row$AB, "</td>\n",
-        "            <td class='stat-col'>", row$R, "</td>\n",
-        "            <td class='stat-col'>", row$H, "</td>\n",
-        "            <td class='stat-col'>", row$BI, "</td>\n",
-        "            <td class='stat-col'>", row$BB, "</td>\n",
-        "            <td class='stat-col'>", row$SO, "</td>\n",
-        "            <td class='avg-col'>", row$Avg, "</td>\n",
-        "          </tr>\n"
+        "            <tr>\n",
+        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
+        "              <td class='stat-col'>", row$AB, "</td>\n",
+        "              <td class='stat-col'>", row$R, "</td>\n",
+        "              <td class='stat-col'>", row$H, "</td>\n",
+        "              <td class='stat-col'>", row$BI, "</td>\n",
+        "              <td class='stat-col'>", row$BB, "</td>\n",
+        "              <td class='stat-col'>", row$SO, "</td>\n",
+        "              <td class='avg-col'>", row$Avg, "</td>\n",
+        "            </tr>\n"
       )
     }
     
     html_content <- paste0(
       html_content,
-      "        </tbody>\n",
-      "        </table>\n",
-      "        <div class='notes'>", game$batting$notes, "</div>\n"
+      "          </tbody>\n",
+      "          </table>\n",
+      "          <div class='notes'>", game$batting$notes, "</div>\n"
     )
     
     # Pitching tables - Visitor
     html_content <- paste0(
       html_content,
-      "        <table class='pitching-table'>\n",
-      "        <thead>\n",
-      "          <tr>\n",
-      "            <th class='player-col'>", game$teams$visitor$place, "</th>\n",
-      "            <th class='ip-col'>IP</th>\n",
-      "            <th class='stat-col'>H</th>\n",
-      "            <th class='stat-col'>R</th>\n",
-      "            <th class='stat-col'>ER</th>\n",
-      "            <th class='stat-col'>BB</th>\n",
-      "            <th class='stat-col'>SO</th>\n",
-      "            <th class='stat-col'>NP</th>\n",
-      "            <th class='era-col'>ERA</th>\n",
-      "          </tr>\n",
-      "        </thead>\n",
-      "        <tbody>\n"
+      "          <table class='pitching-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
+      "              <th class='ip-col'>IP</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>ER</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='stat-col'>NP</th>\n",
+      "              <th class='era-col'>ERA</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
     )
     
     # Add visitor pitching rows
@@ -1488,44 +1845,44 @@ generate_newspaper_page2 <- function(games_data, date_str,
       player_name <- names(row)[1] # First column name is team place
       html_content <- paste0(
         html_content,
-        "          <tr>\n",
-        "            <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "            <td class='ip-col'>", row$IP, "</td>\n",
-        "            <td class='stat-col'>", row$H, "</td>\n",
-        "            <td class='stat-col'>", row$R, "</td>\n",
-        "            <td class='stat-col'>", row$ER, "</td>\n",
-        "            <td class='stat-col'>", row$BB, "</td>\n",
-        "            <td class='stat-col'>", row$SO, "</td>\n",
-        "            <td class='stat-col'>", row$NP, "</td>\n",
-        "            <td class='era-col'>", row$ERA, "</td>\n",
-        "          </tr>\n"
+        "            <tr>\n",
+        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
+        "              <td class='ip-col'>", row$IP, "</td>\n",
+        "              <td class='stat-col'>", row$H, "</td>\n",
+        "              <td class='stat-col'>", row$R, "</td>\n",
+        "              <td class='stat-col'>", row$ER, "</td>\n",
+        "              <td class='stat-col'>", row$BB, "</td>\n",
+        "              <td class='stat-col'>", row$SO, "</td>\n",
+        "              <td class='stat-col'>", row$NP, "</td>\n",
+        "              <td class='era-col'>", row$ERA, "</td>\n",
+        "            </tr>\n"
       )
     }
     
     html_content <- paste0(
       html_content,
-      "        </tbody>\n",
-      "        </table>\n"
+      "          </tbody>\n",
+      "          </table>\n"
     )
     
     # Pitching tables - Home
     html_content <- paste0(
       html_content,
-      "        <table class='pitching-table'>\n",
-      "        <thead>\n",
-      "          <tr>\n",
-      "            <th class='player-col'>", game$teams$home$place, "</th>\n",
-      "            <th class='ip-col'>IP</th>\n",
-      "            <th class='stat-col'>H</th>\n",
-      "            <th class='stat-col'>R</th>\n",
-      "            <th class='stat-col'>ER</th>\n",
-      "            <th class='stat-col'>BB</th>\n",
-      "            <th class='stat-col'>SO</th>\n",
-      "            <th class='stat-col'>NP</th>\n",
-      "            <th class='era-col'>ERA</th>\n",
-      "          </tr>\n",
-      "        </thead>\n",
-      "        <tbody>\n"
+      "          <table class='pitching-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
+      "              <th class='ip-col'>IP</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>ER</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='stat-col'>NP</th>\n",
+      "              <th class='era-col'>ERA</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
     )
     
     # Add home pitching rows
@@ -1534,24 +1891,24 @@ generate_newspaper_page2 <- function(games_data, date_str,
       player_name <- names(row)[1] # First column name is team place
       html_content <- paste0(
         html_content,
-        "          <tr>\n",
-        "            <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "            <td class='ip-col'>", row$IP, "</td>\n",
-        "            <td class='stat-col'>", row$H, "</td>\n",
-        "            <td class='stat-col'>", row$R, "</td>\n",
-        "            <td class='stat-col'>", row$ER, "</td>\n",
-        "            <td class='stat-col'>", row$BB, "</td>\n",
-        "            <td class='stat-col'>", row$SO, "</td>\n",
-        "            <td class='stat-col'>", row$NP, "</td>\n",
-        "            <td class='era-col'>", row$ERA, "</td>\n",
-        "          </tr>\n"
+        "            <tr>\n",
+        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
+        "              <td class='ip-col'>", row$IP, "</td>\n",
+        "              <td class='stat-col'>", row$H, "</td>\n",
+        "              <td class='stat-col'>", row$R, "</td>\n",
+        "              <td class='stat-col'>", row$ER, "</td>\n",
+        "              <td class='stat-col'>", row$BB, "</td>\n",
+        "              <td class='stat-col'>", row$SO, "</td>\n",
+        "              <td class='stat-col'>", row$NP, "</td>\n",
+        "              <td class='era-col'>", row$ERA, "</td>\n",
+        "            </tr>\n"
       )
     }
     
     html_content <- paste0(
       html_content,
-      "        </tbody>\n",
-      "        </table>\n"
+      "          </tbody>\n",
+      "          </table>\n"
     )
 
     # Game info (time, attendance, umpires)
@@ -1574,18 +1931,19 @@ generate_newspaper_page2 <- function(games_data, date_str,
     # Game notes
     html_content <- paste0(
       html_content,
-      "        <div class='notes'>", game$pitching$notes, gameInfoNotes, "</div>\n"
+      "          <div class='notes'>", game$pitching$notes, gameInfoNotes, "</div>\n"
     )
 
     html_content <- paste0(
       html_content,
-      "      </div>\n"
+      "        </div>\n"
     )
   }
   
   # Close the boxscores-container and newspaper divs
   html_content <- paste0(
     html_content,
+    "      </div>\n",
     "    </div>\n",
     "  </div>\n",
     "</body>\n",
@@ -1596,16 +1954,22 @@ generate_newspaper_page2 <- function(games_data, date_str,
 }
 
 #' Main function to process box scores for a given date
-#' 
-#' @param year Year (YYYY)
-#' @param month Month (MM)
-#' @param day Day (DD)
+#'
+#' The passed date is treated as "today" (the newspaper date).
+#' Box scores are fetched from "yesterday" (completed games).
+#' Standings and leaders are as of "yesterday".
+#' Today's games and tomorrow's games are included in the games schedule section.
+#'
+#' @param year Year (YYYY) - the newspaper date
+#' @param month Month (MM) - the newspaper date
+#' @param day Day (DD) - the newspaper date
 #' @param season Season year
 #' @param output_dir Directory to save output files
 #' @param save_newspaper Logical, whether to save newspaper-style HTML
 #' @param save_pdf Logical, whether to save pdf of newspaper-style HTML
 #' @param include_standings Logical, whether to include standings in newspaper
 #' @param include_leaders Logical, whether to include league leaders in newspaper
+#' @param include_games_schedule Logical, whether to include games schedule section
 #' @return List of all games' data
 get_box_scores <- function(year, month, day,
                            season = NULL,
@@ -1613,63 +1977,110 @@ get_box_scores <- function(year, month, day,
                            save_newspaper = TRUE,
                            save_pdf = TRUE,
                            include_standings = TRUE,
-                           include_leaders = TRUE) {
-  # Format date for processing
-  formatted_date <- paste0(
-    year, "-", 
-    sprintf("%02d", as.integer(month)), "-", 
-    sprintf("%02d", as.integer(day))
-  )
-  
+                           include_leaders = TRUE,
+                           include_games_schedule = TRUE) {
+
+  # "today" is the newspaper date (the passed date)
+  today_date <- as.Date(paste0(year, "-", sprintf("%02d", as.integer(month)), "-", sprintf("%02d", as.integer(day))))
+
+  # "yesterday" is when box score games were completed
+
+  yesterday_date <- today_date - 1
+
+  # "tomorrow" for upcoming games preview
+  tomorrow_date <- today_date + 1
+
+  # Format dates for API calls
+  yesterday_formatted <- format(yesterday_date, "%Y-%m-%d")
+  today_formatted <- format(today_date, "%Y-%m-%d")
+  tomorrow_formatted <- format(tomorrow_date, "%Y-%m-%d")
+
+  # Date string for file naming uses "today"
+  date_str <- format(today_date, "%Y%m%d")
+
   if (is.null(season)) {
-    season <- year
+    season <- format(today_date, "%Y")
   }
-  
-  # Format date string for file naming
-  date_str <- paste0(year, sprintf("%02d", as.integer(month)), sprintf("%02d", as.integer(day)))
-  
+
   # Create output directory
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-  
-  # Process all games
-  print(paste0("Processing games for ", formatted_date, "..."))
-  games_data <- process_all_gamesMLB(year, month, day)
-  print(paste0("Found ", length(games_data), " games"))
-  
+
+  # Process completed games from YESTERDAY
+  print(paste0("Processing games for ", yesterday_formatted, " (yesterday)..."))
+  games_data <- process_all_gamesMLB(
+    format(yesterday_date, "%Y"),
+    format(yesterday_date, "%m"),
+    format(yesterday_date, "%d")
+  )
+  print(paste0("Found ", length(games_data), " completed games"))
+
   # Generate and save newspaper-style page if requested
   if (save_newspaper) {
     print("Generating newspaper page...")
-    
-    # Get standings data if needed
+
+    # Get standings data as of YESTERDAY
     standings_data <- NULL
     if (include_standings) {
       print("Getting standings data...")
-      standings_data <- get_standingsMLB(formatted_date)
+      standings_data <- get_standingsMLB(yesterday_formatted)
     }
-    
-    # Get league leaders data if needed
+
+    # Get league leaders data as of YESTERDAY
     leaders_data <- NULL
     if (include_leaders) {
       print("Getting league leaders data...")
-      leaders_data <- get_league_leadersMLB(formatted_date)
+      leaders_data <- get_league_leadersMLB(yesterday_formatted)
     }
-    
+
+    # Get games schedule data
+    games_schedule_data <- NULL
+    if (include_games_schedule) {
+      print("Getting games schedule data...")
+
+      # Yesterday's scores (extract from games_data for brief display)
+      yesterday_scores <- lapply(games_data, function(game) {
+        list(
+          away_team = game$teams$visitor$place,
+          away_abbrev = game$teams$visitor$abbrev,
+          away_score = game$teams$visitor$score,
+          home_team = game$teams$home$place,
+          home_abbrev = game$teams$home$abbrev,
+          home_score = game$teams$home$score
+        )
+      })
+
+      # Today's games with pitchers
+      print(paste0("Fetching today's games (", today_formatted, ")..."))
+      today_games <- get_scheduled_gamesMLB(today_formatted, include_pitchers = TRUE)
+
+      # Tomorrow's games (just matchups, no pitcher stats needed)
+      print(paste0("Fetching tomorrow's games (", tomorrow_formatted, ")..."))
+      tomorrow_games <- get_scheduled_gamesMLB(tomorrow_formatted, include_pitchers = FALSE)
+
+      games_schedule_data <- list(
+        yesterday = yesterday_scores,
+        today = today_games,
+        tomorrow = tomorrow_games
+      )
+    }
+
     # Generate the newspaper page
     print("Creating newspaper HTML...")
     newspaper_html <- generate_newspaper_page2(
-      games_data, 
-      date_str, 
-      standings_data, 
-      leaders_data
+      games_data,
+      date_str,
+      standings_data,
+      leaders_data,
+      games_schedule_data
     )
-    
+
     # Write the newspaper HTML file
     newspaper_file <- file.path(output_dir, paste0(date_str, ".html"))
     print(paste0("Writing newspaper to ", newspaper_file))
     writeLines(newspaper_html, newspaper_file)
     print("Newspaper HTML file created successfully")
   }
-  
+
   # Generate PDF if requested
   if (save_newspaper && save_pdf) {
     print("Generating PDF version...")
@@ -1711,8 +2122,8 @@ get_standingsMLB <- function(date) {
       unlist()
     
     lapply(1:length(resp_div), function(i) {
-      # Get team names
-      team_names <- resp_lg$records$teamRecords[[i]]$team$link %>%
+      # Get team names and abbreviations
+      team_info <- resp_lg$records$teamRecords[[i]]$team$link %>%
         lapply(function(x) {
           resp_team <- GET(
             paste0('https://statsapi.mlb.com/', x)
@@ -1720,9 +2131,14 @@ get_standingsMLB <- function(date) {
             content(as = 'text') %>%
             fromJSON()
 
-          resp_team$teams$shortName
-        }) %>%
-        unlist()
+          list(
+            shortName = resp_team$teams$shortName,
+            abbrev = resp_team$teams$abbreviation
+          )
+        })
+
+      team_names <- sapply(team_info, function(x) x$shortName)
+      team_abbrevs <- sapply(team_info, function(x) x$abbrev)
 
       # Get clinch indicators (may be NULL or NA for some teams)
       clinch_indicators <- tryCatch({
@@ -1745,6 +2161,7 @@ get_standingsMLB <- function(date) {
       data.table(
         div = resp_div[i],
         Team = team_display,
+        Abbrev = team_abbrevs,
         W = resp_lg$records$teamRecords[[i]]$wins,
         L = resp_lg$records$teamRecords[[i]]$losses,
         PCT = resp_lg$records$teamRecords[[i]]$winningPercentage,
@@ -1851,6 +2268,7 @@ get_league_leadersMLB <- function(date) {
         
         dt_stats <- data.table(Player = c_bn2,
                                Team = resp_tm$teams$shortName,
+                               Abbrev = resp_tm$teams$abbreviation,
                                id = resp_tm$teams$id) %>%
           cbind(dt_stats)
         
@@ -1864,6 +2282,7 @@ get_league_leadersMLB <- function(date) {
     } else {
       avg_leaders <- data.table(Player = '',
                                 Team = '',
+                                Abbrev = '',
                                 AB = '',
                                 R = '',
                                 H = '',
@@ -1878,7 +2297,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_hr$leagueLeaders$leaders) > 0) {
-      
+
       hr_leaders <- apply(resp_hr$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -1886,22 +2305,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      hr_leaders <- ''
+      hr_leaders <- list()
     }
     
     # RBI
@@ -1912,7 +2330,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_rbi$leagueLeaders$leaders) > 0) {
-      
+
       rbi_leaders <- apply(resp_rbi$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -1920,22 +2338,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      rbi_leaders <- ''
+      rbi_leaders <- list()
     }
     
     # Hits
@@ -1946,7 +2363,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_hits$leagueLeaders$leaders) > 0) {
-      
+
       hits_leaders <- apply(resp_hits$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -1954,22 +2371,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      hits_leaders <- ''
+      hits_leaders <- list()
     }
     
     # Stolen Bases
@@ -1980,7 +2396,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_sb$leagueLeaders$leaders) > 0) {
-      
+
       sb_leaders <- apply(resp_sb$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -1988,22 +2404,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      sb_leaders <- ''
+      sb_leaders <- list()
     }
     
     # Process pitching stats
@@ -2016,7 +2431,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_w$leagueLeaders$leaders) > 0) {
-      
+
       w_leaders <- apply(resp_w$leagueLeaders$leaders[[1]], 1, function(x) {
 
         resp_p <- GET(
@@ -2024,22 +2439,22 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         resp_stats <- GET(
           paste0('https://statsapi.mlb.com/api/v1/people/', x['person.id'], '/stats?stats=byDateRange&group=pitching&leagueId=', lg, '&gameType=R&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         dt_stats <- resp_stats$stats$splits %>%
           .[[1]] %>%
           data.table() %>%
@@ -2047,28 +2462,28 @@ get_league_leadersMLB <- function(date) {
             .(W = stat.wins,
               L = stat.losses,
               pct = stat.wins / (stat.wins + stat.losses))]
-        
-        data.table(Player = c_bn2, Team = resp_tm$teams$shortName) %>%
+
+        data.table(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation) %>%
           cbind(dt_stats)
-        
+
       }) %>%
         rbindlist() %>%
         .[order(-W, -pct)] %>%
         .[, seq := 1:.N] %>%
         .[, rank := cumsum(W != shift(W, fill = 0))] %>%
         .[, rank2 := cumsum(pct != shift(pct, fill = 0)), rank]
-      
+
       dt_lrank <- w_leaders[8, .(rank, rank2)]
-      
+
       w_leaders <- w_leaders %>%
         .[W > 0 &
             seq <= 10 &
             !((rank > dt_lrank$rank) |
                 (rank = dt_lrank$rank & rank2 > dt_lrank$rank2))] %>%
-        .[, paste0(Player, ', ', Team, ', ', W, '-', L, ', ', sub('0\\.','.',sprintf('%#.3f', pct)))] %>%
-        paste0(collapse='; ')
+        .[, .(Player, Team, Abbrev, Value = paste0(W, '-', L, ', ', sub('0\\.','.',sprintf('%#.3f', pct))))] %>%
+        apply(1, as.list)
     } else {
-      w_leaders <- ''
+      w_leaders <- list()
     }
     
     # Strikeouts
@@ -2079,7 +2494,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_so$leagueLeaders$leaders) > 0) {
-      
+
       so_leaders <- apply(resp_so$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -2087,22 +2502,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      so_leaders <- ''
+      so_leaders <- list()
     }
     
     # Saves
@@ -2113,7 +2527,7 @@ get_league_leadersMLB <- function(date) {
       fromJSON()
     
     if (length(resp_sv$leagueLeaders$leaders) > 0) {
-      
+
       sv_leaders <- apply(resp_sv$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
 
         resp_p <- GET(
@@ -2121,22 +2535,21 @@ get_league_leadersMLB <- function(date) {
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         c_bn <- resp_p$people$boxscoreName
         c_bn2 <- formatBoxName(c_bn)
-        
+
         resp_tm <- GET(
           paste0('https://statsapi.mlb.com/', x['team.link'])
         ) %>%
           content(as = 'text') %>%
           fromJSON()
-        
-        paste0(c_bn2, ', ', resp_tm$teams$shortName, ', ', x['value'])
-        
-      }) %>%
-        paste0(collapse='; ')
+
+        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+
+      })
     } else {
-      sv_leaders <- ''
+      sv_leaders <- list()
     }
     
     # Combine all batting leaders
@@ -2227,5 +2640,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 
 # Example usage:
-# get_box_scores("2025", "09", "22")
+# get_box_scores("2025", "09", "23")
 
