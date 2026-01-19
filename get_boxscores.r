@@ -7,7 +7,91 @@ library(jsonlite)
 library(stringr)
 library(chromote)
 
+# =============================================================================
+# MLB Stats API Configuration
+# =============================================================================
 
+MLB_API_BASE <- "https://statsapi.mlb.com/api/v1"
+MLB_API_V1_1 <- "https://statsapi.mlb.com/api/v1.1"
+
+# Sport and game type identifiers
+SPORT_ID_MLB <- 1
+GAME_TYPE_REGULAR <- "R"
+GAME_TYPE_POSTSEASON <- "P"
+
+# League identifiers
+LEAGUE_ID_AL <- 103
+LEAGUE_ID_NL <- 104
+
+#' Build URL for schedule API
+#' @param date Date string in YYYY-MM-DD format
+#' @param sport_id Sport ID (default: MLB)
+#' @param game_type Game type (default: Regular season)
+#' @return URL string
+build_schedule_url <- function(date, sport_id = SPORT_ID_MLB, game_type = GAME_TYPE_REGULAR) {
+  paste0(MLB_API_BASE, "/schedule/games/?sportId=", sport_id,
+         "&gameType=", game_type, "&date=", date)
+}
+
+#' Build URL for game boxscore
+#' @param game_id MLB game ID
+#' @return URL string
+build_boxscore_url <- function(game_id) {
+  paste0(MLB_API_BASE, "/game/", game_id, "/boxscore")
+}
+
+#' Build URL for game linescore
+#' @param game_id MLB game ID
+#' @return URL string
+build_linescore_url <- function(game_id) {
+  paste0(MLB_API_BASE, "/game/", game_id, "/linescore")
+}
+
+#' Build URL for game feed (live data including umpires, attendance)
+#' @param game_id MLB game ID
+#' @return URL string
+build_game_feed_url <- function(game_id) {
+  paste0(MLB_API_V1_1, "/game/", game_id, "/feed/live")
+}
+
+#' Build URL for player info
+#' @param player_id MLB player ID
+#' @return URL string
+build_player_url <- function(player_id) {
+  paste0(MLB_API_BASE, "/people/", player_id)
+}
+
+#' Build URL for team info
+#' @param team_link Team link from API response (e.g., "/api/v1/teams/147")
+#' @return URL string
+build_team_url <- function(team_link) {
+  paste0("https://statsapi.mlb.com", team_link)
+}
+
+#' Build URL for standings
+#' @param league_id League ID (103=AL, 104=NL)
+#' @param season Season year
+#' @return URL string
+build_standings_url <- function(league_id, season) {
+  paste0(MLB_API_BASE, "/standings?leagueId=", league_id, "&season=", season)
+}
+
+#' Build URL for league leaders
+#' @param stat_group "hitting" or "pitching"
+#' @param stat_type Stat category (e.g., "battingAverage", "earnedRunAverage")
+#' @param league_id League ID (103=AL, 104=NL)
+#' @param season Season year
+#' @param limit Number of leaders to fetch
+#' @return URL string
+build_leaders_url <- function(stat_group, stat_type, league_id, season, limit = 5) {
+  paste0(MLB_API_BASE, "/stats/leaders?leaderCategories=", stat_type,
+         "&statGroup=", stat_group, "&leagueId=", league_id,
+         "&season=", season, "&limit=", limit)
+}
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
 
 formatBoxName <- function(x) {
   c_bn2 <-
@@ -49,8 +133,8 @@ format_game_time <- function(datetime_str) {
 get_pitcher_statsMLB <- function(pitcher_id, season) {
   tryCatch({
     resp <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/people/', pitcher_id,
-             '?hydrate=currentTeam,stats(type=season,sportId=1,season=', season, ')')
+      paste0(build_player_url(pitcher_id),
+             '?hydrate=currentTeam,stats(type=season,sportId=', SPORT_ID_MLB, ',season=', season, ')')
     ) %>%
       content(as = 'text') %>%
       fromJSON()
@@ -90,8 +174,7 @@ get_scheduled_gamesMLB <- function(date, include_pitchers = TRUE) {
 
     # Fetch schedule with probable pitchers hydrated
     resp <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&gameType=R&date=',
-             date, '&hydrate=probablePitcher(note)')
+      paste0(build_schedule_url(date), '&hydrate=probablePitcher(note)')
     ) %>%
       content(as = 'text') %>%
       fromJSON()
@@ -110,11 +193,11 @@ get_scheduled_gamesMLB <- function(date, include_pitchers = TRUE) {
       game <- games_df[i, ]
 
       # Get team info
-      away_team_resp <- GET(paste0('https://statsapi.mlb.com', game$teams$away$team$link)) %>%
+      away_team_resp <- GET(build_team_url(game$teams$away$team$link)) %>%
         content(as = 'text') %>%
         fromJSON()
 
-      home_team_resp <- GET(paste0('https://statsapi.mlb.com', game$teams$home$team$link)) %>%
+      home_team_resp <- GET(build_team_url(game$teams$home$team$link)) %>%
         content(as = 'text') %>%
         fromJSON()
 
@@ -172,7 +255,7 @@ get_scheduled_gamesMLB <- function(date, include_pitchers = TRUE) {
 #' @return data.table with personID, boxscoreName, and boxscoreName2 columns
 fetch_player_name_mapping <- function(players_list) {
   lapply(players_list, function(x) {
-    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
+    resp_p <- GET(build_player_url(x[['person']]$id)) %>%
       content(as = 'text') %>%
       fromJSON()
     data.table(
@@ -190,7 +273,7 @@ fetch_player_name_mapping <- function(players_list) {
 #' @return data.table with batting statistics
 extract_team_batting <- function(batters, players_data) {
   lapply(batters, function(x) {
-    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
+    resp_p <- GET(build_player_url(x)) %>%
       content(as = 'text') %>%
       fromJSON()
     playerData <- players_data[[paste0('ID', x)]]
@@ -226,7 +309,7 @@ extract_team_batting <- function(batters, players_data) {
 #' @return data.table with formatted E, SB, CS strings
 extract_team_fielding_stats <- function(players_list) {
   lapply(players_list, function(x) {
-    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
+    resp_p <- GET(build_player_url(x[['person']]$id)) %>%
       content(as = 'text') %>%
       fromJSON()
     data.table(
@@ -271,7 +354,7 @@ format_batting_extra_stats <- function(batting_dt) {
 #' @return data.table with pitching statistics
 extract_team_pitching <- function(pitchers, players_data, franchise_name) {
   dt <- lapply(pitchers, function(x) {
-    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
+    resp_p <- GET(build_player_url(x)) %>%
       content(as = 'text') %>%
       fromJSON()
     playerData <- players_data[[paste0('ID', x)]]
@@ -300,35 +383,35 @@ extract_team_pitching <- function(pitchers, players_data, franchise_name) {
 #' @param season Season year
 #' @return List of all games' data
 process_all_gamesMLB <- function(year, month, day) {
-  
+
   # Get all games for the specified date
-  games <- GET(paste0('http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&gameType=R&date=', year, '-', month, '-', day)) %>%
+  games <- GET(build_schedule_url(paste0(year, '-', month, '-', day))) %>%
     content(as = 'text') %>%
     fromJSON()
-  
+
   # Process each game's box score
   process_game_box_scoreMLB <- function(gameId) {
     print(gameId)
-    resp_box <- GET(paste0('http://statsapi.mlb.com/api/v1/game/', gameId, '/boxscore')) %>%
+    resp_box <- GET(build_boxscore_url(gameId)) %>%
       content(as = 'text') %>%
       fromJSON()
-    
-    resp_line <- GET(paste0('http://statsapi.mlb.com/api/v1/game/', gameId, '/linescore')) %>%
+
+    resp_line <- GET(build_linescore_url(gameId)) %>%
       content(as = 'text') %>%
       fromJSON()
 
     # Get game feed data for umpires, time, and attendance
-    resp_game <- GET(paste0('http://statsapi.mlb.com/api/v1.1/game/', gameId, '/feed/live')) %>%
+    resp_game <- GET(build_game_feed_url(gameId)) %>%
       content(as = 'text') %>%
       fromJSON()
 
-    resp_teamA <- GET(paste0('http://statsapi.mlb.com/', resp_box$teams$away$team$link)) %>%
+    resp_teamA <- GET(build_team_url(resp_box$teams$away$team$link)) %>%
       content(as = 'text') %>%
       fromJSON()
-    
+
     c_franchiseNameA <- resp_teamA$teams$franchiseName
-    
-    resp_teamH <- GET(paste0('http://statsapi.mlb.com/', resp_box$teams$home$team$link)) %>%
+
+    resp_teamH <- GET(build_team_url(resp_box$teams$home$team$link)) %>%
       content(as = 'text') %>%
       fromJSON()
     
@@ -2019,33 +2102,31 @@ get_box_scores <- function(year, month, day,
 get_standingsMLB <- function(date) {
 
   season <- substr(date,1,4)
-  
+
   getStandingsLg <- function(lg) {
     resp_lg <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/standings?leagueId=', lg, '&season=', season, '&date=', date)
+      paste0(build_standings_url(lg, season), '&date=', date)
     ) %>%
       content(as = 'text') %>%
       fromJSON()
-    
+
     resp_div <- resp_lg$records$division$link %>%
       lapply(function(x) {
-        resp <- GET(paste0('https://statsapi.mlb.com/', x)) %>%
+        resp <- GET(paste0("https://statsapi.mlb.com", x)) %>%
           content(as = 'text') %>%
           fromJSON()
-        
+
         resp$divisions$nameShort %>%
           gsub('AL ', '', ., fixed = TRUE) %>%
           gsub('NL ', '', ., fixed = TRUE)
       }) %>%
       unlist()
-    
+
     lapply(1:length(resp_div), function(i) {
       # Get team names and abbreviations
       team_info <- resp_lg$records$teamRecords[[i]]$team$link %>%
         lapply(function(x) {
-          resp_team <- GET(
-            paste0('https://statsapi.mlb.com/', x)
-          ) %>%
+          resp_team <- GET(build_team_url(x)) %>%
             content(as = 'text') %>%
             fromJSON()
 
@@ -2112,8 +2193,8 @@ get_standingsMLB <- function(date) {
   
   # Return as a list
   return(list(
-    al = getStandingsLg(103),
-    nl = getStandingsLg(104)
+    al = getStandingsLg(LEAGUE_ID_AL),
+    nl = getStandingsLg(LEAGUE_ID_NL)
   ))
 }
 
@@ -2126,7 +2207,7 @@ get_league_leadersMLB <- function(date) {
   
   # Function to process leaders by league
   process_leaders_by_league <- function(lg) {
-    lg <- ifelse(lg == 'AL', 103, 104)
+    lg <- ifelse(lg == 'AL', LEAGUE_ID_AL, LEAGUE_ID_NL)
     
     # Create batting leader tables
     
