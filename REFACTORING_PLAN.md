@@ -14,6 +14,12 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Added URL builder functions: `build_schedule_url()`, `build_boxscore_url()`, `build_linescore_url()`, `build_game_feed_url()`, `build_player_url()`, `build_team_url()`, `build_standings_url()`, `build_leaders_url()`
 - Updated helper functions and main processing functions to use builders
 
+### Standings Table HTML Generation (Completed 2026-01-19)
+- Added `generate_standings_table()` helper for division standings HTML
+- Added `extract_clinch_footnotes()` helper for playoff clinch indicators
+- Replaced 6 duplicated table blocks (AL/NL East/Central/West) with helper calls
+- Reduced ~260 lines to ~30 lines
+
 ---
 
 ## Phase 1: High Impact Refactors

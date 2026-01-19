@@ -717,6 +717,72 @@ format_leaders_html <- function(leaders_list) {
   paste0(leader_strings, collapse = "; ")
 }
 
+#' Generate HTML for a division standings table
+#'
+#' @param division_data data.table with Team, Abbrev, W, L, PCT, GB, L10, Strk, H, A columns
+#' @return HTML string for the standings table
+generate_standings_table <- function(division_data) {
+  # Table header
+  header <- paste0(
+    "            <table class='standings-table'>\n",
+    "              <thead>\n",
+    "                <tr>\n",
+    "                  <th class='team-col'>Team</th>\n",
+    "                  <th class='num-col'>W</th>\n",
+    "                  <th class='num-col'>L</th>\n",
+    "                  <th class='pct-col'>Pct</th>\n",
+    "                  <th class='pct-col'>GB</th>\n",
+    "                  <th class='pct-col'>L10</th>\n",
+    "                  <th class='pct-col'>Strk</th>\n",
+    "                  <th class='pct-col'>Home</th>\n",
+    "                  <th class='pct-col'>Away</th>\n",
+    "                </tr>\n",
+    "              </thead>\n",
+    "              <tbody>\n"
+  )
+
+  # Table rows
+  rows <- ""
+  for (i in 1:nrow(division_data)) {
+    row <- division_data[i, ]
+    rows <- paste0(
+      rows,
+      "                <tr data-team='", row$Abbrev, "'>\n",
+      "                  <td class='team-col'>", row$Team, "</td>\n",
+      "                  <td class='num-col'>", row$W, "</td>\n",
+      "                  <td class='num-col'>", row$L, "</td>\n",
+      "                  <td class='pct-col'>", row$PCT, "</td>\n",
+      "                  <td class='pct-col'>", row$GB, "</td>\n",
+      "                  <td class='pct-col'>", row$L10, "</td>\n",
+      "                  <td class='pct-col'>", row$Strk, "</td>\n",
+      "                  <td class='pct-col'>", row$H, "</td>\n",
+      "                  <td class='pct-col'>", row$A, "</td>\n",
+      "                </tr>\n"
+    )
+  }
+
+  # Table footer
+  footer <- paste0(
+    "              </tbody>\n",
+    "            </table>\n"
+  )
+
+  paste0(header, rows, footer)
+}
+
+#' Extract clinch indicator footnotes from team names
+#'
+#' @param team_names Vector of team names (may have clinch indicator prefixes)
+#' @return Vector of footnote strings, or empty vector if none
+extract_clinch_footnotes <- function(team_names) {
+  footnotes <- c()
+  if (any(grepl("^w-", team_names))) footnotes <- c(footnotes, "w-clinched wild card")
+  if (any(grepl("^x-", team_names))) footnotes <- c(footnotes, "x-clinched playoff berth")
+  if (any(grepl("^y-", team_names))) footnotes <- c(footnotes, "y-clinched division")
+  if (any(grepl("^z-", team_names))) footnotes <- c(footnotes, "z-clinched best record")
+  footnotes
+}
+
 #' Generate a newspaper-style HTML page with all box scores
 #'
 #' @param games_data List of games' data
@@ -1120,146 +1186,22 @@ generate_newspaper_page2 <- function(games_data, date_str,
       "            <div class='stats-subheader'>East Division</div>\n"
     )
     
-    # Generate AL East standings table
+    # Generate AL standings tables using helper
     html_content <- paste0(
       html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
+      generate_standings_table(standings_data$al[[1]]),
+      "            <div class='stats-subheader'>Central Division</div>\n",
+      generate_standings_table(standings_data$al[[2]]),
+      "            <div class='stats-subheader'>West Division</div>\n",
+      generate_standings_table(standings_data$al[[3]])
     )
-    
-    for (i in 1:nrow(standings_data$al[[1]])) {
-      row <- standings_data$al[[1]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    html_content <- paste0(
-      html_content,
-      "              </tbody>\n",
-      "            </table>\n",
-      "            <div class='stats-subheader'>Central Division</div>\n"
-    )
-    
-    # Generate AL Central standings table
-    html_content <- paste0(
-      html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
-    )
-    
-    for (i in 1:nrow(standings_data$al[[2]])) {
-      row <- standings_data$al[[2]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    html_content <- paste0(
-      html_content,
-      "              </tbody>\n",
-      "            </table>\n",
-      "            <div class='stats-subheader'>West Division</div>\n"
-    )
-    
-    # Generate AL West standings table
-    html_content <- paste0(
-      html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
-    )
-    
-    for (i in 1:nrow(standings_data$al[[3]])) {
-      row <- standings_data$al[[3]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    # Build clinch indicator footnotes based on what's actually present in AL standings
+
+    # Build clinch indicator footnotes
     al_teams <- c(standings_data$al[[1]]$Team, standings_data$al[[2]]$Team, standings_data$al[[3]]$Team)
-    al_clinch_footnotes <- c()
-    if (any(grepl("^w-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "w-clinched wild card")
-    if (any(grepl("^x-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "x-clinched playoff berth")
-    if (any(grepl("^y-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "y-clinched division")
-    if (any(grepl("^z-", al_teams))) al_clinch_footnotes <- c(al_clinch_footnotes, "z-clinched best record")
+    al_clinch_footnotes <- extract_clinch_footnotes(al_teams)
 
     html_content <- paste0(
       html_content,
-      "              </tbody>\n",
-      "            </table>\n",
       ifelse(length(al_clinch_footnotes) > 0,
              paste0("            <div class='leaders-note' style='margin-top: 8px;'>", paste(al_clinch_footnotes, collapse = "; "), "</div>\n"),
              ""),
@@ -1349,148 +1291,22 @@ generate_newspaper_page2 <- function(games_data, date_str,
       
     )
     
-    # Generate NL standings table
+    # Generate NL standings tables using helper
     html_content <- paste0(
       html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
+      generate_standings_table(standings_data$nl[[1]]),
+      "            <div class='stats-subheader'>Central Division</div>\n",
+      generate_standings_table(standings_data$nl[[2]]),
+      "            <div class='stats-subheader'>West Division</div>\n",
+      generate_standings_table(standings_data$nl[[3]])
     )
-    
-    for (i in 1:nrow(standings_data$nl[[1]])) {
-      row <- standings_data$nl[[1]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    html_content <- paste0(
-      html_content,
-      "              </tbody>\n",
-      "            </table>\n",
-      "            <div class='stats-subheader'>Central Division</div>\n"
-      
-    )
-    
-    # Generate NL standings table
-    html_content <- paste0(
-      html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
-    )
-    
-    for (i in 1:nrow(standings_data$nl[[2]])) {
-      row <- standings_data$nl[[2]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    html_content <- paste0(
-      html_content,
-      "              </tbody>\n",
-      "            </table>\n",
-      "            <div class='stats-subheader'>West Division</div>\n"
-      
-    )
-    
-    # Generate NL standings table
-    html_content <- paste0(
-      html_content,
-      "            <table class='standings-table'>\n",
-      "              <thead>\n",
-      "                <tr>\n",
-      "                  <th class='team-col'>Team</th>\n",
-      "                  <th class='num-col'>W</th>\n",
-      "                  <th class='num-col'>L</th>\n",
-      "                  <th class='pct-col'>Pct</th>\n",
-      "                  <th class='pct-col'>GB</th>\n",
-      "                  <th class='pct-col'>L10</th>\n",
-      "                  <th class='pct-col'>Strk</th>\n",
-      "                  <th class='pct-col'>Home</th>\n",
-      "                  <th class='pct-col'>Away</th>\n",
-      "                </tr>\n",
-      "              </thead>\n",
-      "              <tbody>\n"
-    )
-    
-    for (i in 1:nrow(standings_data$nl[[3]])) {
-      row <- standings_data$nl[[3]][i,]
-      html_content <- paste0(
-        html_content,
-        "                <tr data-team='", row$Abbrev, "'>\n",
-        "                  <td class='team-col'>", row$Team, "</td>\n",
-        "                  <td class='num-col'>", row$W, "</td>\n",
-        "                  <td class='num-col'>", row$L, "</td>\n",
-        "                  <td class='pct-col'>", row$PCT, "</td>\n",
-        "                  <td class='pct-col'>", row$GB, "</td>\n",
-        "                  <td class='pct-col'>", row$L10, "</td>\n",
-        "                  <td class='pct-col'>", row$Strk, "</td>\n",
-        "                  <td class='pct-col'>", row$H, "</td>\n",
-        "                  <td class='pct-col'>", row$A, "</td>\n",
-        "                </tr>\n"
-      )
-    }
-    
-    # Build clinch indicator footnotes based on what's actually present in NL standings
+
+    # Build clinch indicator footnotes
     nl_teams <- c(standings_data$nl[[1]]$Team, standings_data$nl[[2]]$Team, standings_data$nl[[3]]$Team)
-    nl_clinch_footnotes <- c()
-    if (any(grepl("^w-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "w-clinched wild card")
-    if (any(grepl("^x-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "x-clinched playoff berth")
-    if (any(grepl("^y-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "y-clinched division")
-    if (any(grepl("^z-", nl_teams))) nl_clinch_footnotes <- c(nl_clinch_footnotes, "z-clinched best record")
+    nl_clinch_footnotes <- extract_clinch_footnotes(nl_teams)
 
     html_content <- paste0(
       html_content,
-      "              </tbody>\n",
-      "            </table>\n",
       ifelse(length(nl_clinch_footnotes) > 0,
              paste0("            <div class='leaders-note' style='margin-top: 8px;'>", paste(nl_clinch_footnotes, collapse = "; "), "</div>\n"),
              ""),
