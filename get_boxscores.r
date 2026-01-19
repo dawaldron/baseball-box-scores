@@ -166,6 +166,132 @@ get_scheduled_gamesMLB <- function(date, include_pitchers = TRUE) {
   })
 }
 
+#' Fetch boxscore name mapping for all players on a team
+#'
+#' @param players_list List of players from API response
+#' @return data.table with personID, boxscoreName, and boxscoreName2 columns
+fetch_player_name_mapping <- function(players_list) {
+  lapply(players_list, function(x) {
+    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
+      content(as = 'text') %>%
+      fromJSON()
+    data.table(
+      personID = x[['person']]$id,
+      boxscoreName = resp_p$people$boxscoreName,
+      boxscoreName2 = formatBoxName(resp_p$people$boxscoreName)
+    )
+  }) %>% rbindlist()
+}
+
+#' Extract batting data for a team
+#'
+#' @param batters Vector of batter IDs
+#' @param players_data List of player data from API response
+#' @return data.table with batting statistics
+extract_team_batting <- function(batters, players_data) {
+  lapply(batters, function(x) {
+    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
+      content(as = 'text') %>%
+      fromJSON()
+    playerData <- players_data[[paste0('ID', x)]]
+    data.table(
+      Note = ifelse(is.null(playerData$stats$batting$note), '', playerData$stats$batting$note),
+      Player = formatBoxName(resp_p$people$boxscoreName),
+      Position = playerData$allPositions$abbreviation %>% tolower() %>% paste0(collapse = '-'),
+      AB = playerData$stats$batting$atBats,
+      H = playerData$stats$batting$hits,
+      R = playerData$stats$batting$runs,
+      BI = playerData$stats$batting$rbi,
+      BI.s = playerData$seasonStats$batting$rbi,
+      BB = playerData$stats$batting$baseOnBalls,
+      SO = playerData$stats$batting$strikeOuts,
+      Avg = playerData$seasonStats$batting$avg,
+      `2B` = playerData$stats$batting$doubles,
+      `2B.s` = playerData$seasonStats$batting$doubles,
+      `3B` = playerData$stats$batting$triples,
+      `3B.s` = playerData$seasonStats$batting$triples,
+      HR = playerData$stats$batting$homeRuns,
+      HR.s = playerData$seasonStats$batting$homeRuns,
+      S = playerData$stats$batting$sacBunts,
+      SF = playerData$stats$batting$sacFlies,
+      GIDP = playerData$stats$batting$groundIntoDoublePlay,
+      GITP = playerData$stats$batting$groundIntoTriplePlay
+    )
+  }) %>% rbindlist(fill = TRUE) %>% .[!is.na(AB)]
+}
+
+#' Extract fielding stats (E, SB, CS) for a team
+#'
+#' @param players_list List of players from API response
+#' @return data.table with formatted E, SB, CS strings
+extract_team_fielding_stats <- function(players_list) {
+  lapply(players_list, function(x) {
+    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
+      content(as = 'text') %>%
+      fromJSON()
+    data.table(
+      Player = formatBoxName(resp_p$people$boxscoreName),
+      E = x$stats$fielding$errors,
+      E.s = x$seasonStats$fielding$errors,
+      SB = x$stats$batting$stolenBases,
+      SB.s = x$seasonStats$batting$stolenBases,
+      CS = x$stats$batting$caughtStealing,
+      CS.s = x$seasonStats$batting$caughtStealing
+    )
+  }) %>% rbindlist(fill = TRUE) %>%
+    .[, .(
+      E = ifelse(!is.na(E) & E > 0, paste0(Player, ifelse(E > 1, paste0(' ', E), ''), ' (', E.s, ')'), ''),
+      SB = ifelse(!is.na(SB) & SB > 0, paste0(Player, ifelse(SB > 1, paste0(' ', SB), ''), ' (', SB.s, ')'), ''),
+      CS = ifelse(!is.na(CS) & CS > 0, paste0(Player, ifelse(CS > 1, paste0(' ', CS), ''), ' (', CS.s, ')'), '')
+    )]
+}
+
+#' Format batting extra-base/RBI notes from batting data
+#'
+#' @param batting_dt data.table from extract_team_batting
+#' @return data.table with formatted 2B, 3B, HR, RBI, S, SF, GIDP, GITP strings
+format_batting_extra_stats <- function(batting_dt) {
+  batting_dt[, .(
+    `2B` = ifelse(!is.na(`2B`) & `2B` > 0, paste0(Player, ifelse(`2B` > 1, paste0(' ', `2B`), ''), ' (', `2B.s`, ')'), ''),
+    `3B` = ifelse(!is.na(`3B`) & `3B` > 0, paste0(Player, ifelse(`3B` > 1, paste0(' ', `3B`), ''), ' (', `3B.s`, ')'), ''),
+    HR = ifelse(!is.na(HR) & HR > 0, paste0(Player, ifelse(HR > 1, paste0(' ', HR), ''), ' (', HR.s, ')'), ''),
+    RBI = ifelse(!is.na(BI) & BI > 0, paste0(Player, ifelse(BI > 1, paste0(' ', BI), ''), ' (', BI.s, ')'), ''),
+    S = ifelse(!is.na(S) & S > 0, paste0(Player, ifelse(S > 1, paste0(' ', S), '')), ''),
+    SF = ifelse(!is.na(S) & SF > 0, paste0(Player, ifelse(SF > 1, paste0(' ', SF), '')), ''),
+    GIDP = ifelse(!is.na(GIDP) & GIDP > 0, paste0(Player, ifelse(GIDP > 1, paste0(' ', GIDP), '')), ''),
+    GITP = ifelse(!is.na(GITP) & GITP > 0, paste0(Player, ifelse(GITP > 1, paste0(' ', GITP), '')), '')
+  )]
+}
+
+#' Extract pitching data for a team
+#'
+#' @param pitchers Vector of pitcher IDs
+#' @param players_data List of player data from API response
+#' @param franchise_name Team franchise name for column header
+#' @return data.table with pitching statistics
+extract_team_pitching <- function(pitchers, players_data, franchise_name) {
+  dt <- lapply(pitchers, function(x) {
+    resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
+      content(as = 'text') %>%
+      fromJSON()
+    playerData <- players_data[[paste0('ID', x)]]
+    data.table(
+      Player = paste0(formatBoxName(resp_p$people$boxscoreName),
+                      ifelse(is.null(playerData$stats$pitching$note), '', paste0(' ', playerData$stats$pitching$note))),
+      IP = playerData$stats$pitching$inningsPitched,
+      H = playerData$stats$pitching$hits,
+      R = playerData$stats$pitching$runs,
+      ER = playerData$stats$pitching$earnedRuns,
+      BB = playerData$stats$pitching$baseOnBalls,
+      SO = playerData$stats$pitching$strikeOuts,
+      NP = playerData$stats$pitching$numberOfPitches,
+      ERA = playerData$seasonStats$pitching$era
+    )
+  }) %>% rbindlist(fill = TRUE)
+  setnames(dt, 'Player', franchise_name)
+  dt
+}
+
 #' Process all games for a given date
 #' 
 #' @param year Year (YYYY)
@@ -208,57 +334,8 @@ process_all_gamesMLB <- function(year, month, day) {
     
     c_franchiseNameH <- resp_teamH$teams$franchiseName
     
-    dt_bnMappingA <- lapply(resp_box$teams$away$players, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      data.table(
-        personID = x[['person']]$id,
-        boxscoreName = c_bn,
-        boxscoreName2 = c_bn2
-      )
-    }) %>%
-      rbindlist()
-    
-    dt_abat <- lapply(resp_box$teams$away$batters, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      playerData <- resp_box$teams$away$players[[paste0('ID', x)]]
-      
-      data.table(
-        Note = ifelse(is.null(playerData$stats$batting$note),'',playerData$stats$batting$note),
-        Player = c_bn2,
-        Position = playerData$allPositions$abbreviation %>% tolower() %>% paste0(collapse='-'),
-        AB =  playerData$stats$batting$atBats,
-        H = playerData$stats$batting$hits,
-        R = playerData$stats$batting$runs,
-        BI = playerData$stats$batting$rbi,
-        BI.s = playerData$seasonStats$batting$rbi,
-        BB = playerData$stats$batting$baseOnBalls,
-        SO = playerData$stats$batting$strikeOuts,
-        Avg = playerData$seasonStats$batting$avg,
-        `2B` = playerData$stats$batting$doubles,
-        `2B.s` = playerData$seasonStats$batting$doubles,
-        `3B` = playerData$stats$batting$triples,
-        `3B.s` = playerData$seasonStats$batting$triples,
-        `HR` = playerData$stats$batting$homeRuns,
-        `HR.s` = playerData$seasonStats$batting$homeRuns,
-        S = playerData$stats$batting$sacBunts,
-        SF = playerData$stats$batting$sacFlies,
-        GIDP = playerData$stats$batting$groundIntoDoublePlay,
-        GITP = playerData$stats$batting$groundIntoTriplePlay)
-    }) %>%
-      rbindlist(fill = TRUE) %>%
-      .[!is.na(AB)]
+    dt_bnMappingA <- fetch_player_name_mapping(resp_box$teams$away$players)
+    dt_abat <- extract_team_batting(resp_box$teams$away$batters, resp_box$teams$away$players)
     
     if (length(resp_box$teams$away$note) > 0) {
       dt_abatNote1 <- resp_box$teams$away$note %>%
@@ -269,39 +346,8 @@ process_all_gamesMLB <- function(year, month, day) {
       dt_abatNote1 <- ''
     }
     
-    dt_abatNote2 <- lapply(resp_box$teams$away$players, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      data.table(
-        Player = c_bn2,
-        E = x$stats$fielding$errors,
-        E.s = x$seasonStats$fielding$errors,
-        SB = x$stats$batting$stolenBases,
-        SB.s = x$seasonStats$batting$stolenBases,
-        CS = x$stats$batting$caughtStealing,
-        CS.s = x$seasonStats$batting$caughtStealing)
-    }) %>%
-      rbindlist(fill = TRUE) %>%
-      .[,
-        .(E = ifelse(!is.na(E) & E > 0, paste0(Player, ifelse(E > 1, paste0(' ', E), ''), ' (', E.s, ')'), ''),
-          SB = ifelse(!is.na(SB) & SB > 0, paste0(Player, ifelse(SB > 1, paste0(' ', SB), ''), ' (', SB.s, ')'), ''),
-          CS = ifelse(!is.na(CS) & CS > 0, paste0(Player, ifelse(CS > 1, paste0(' ', CS), ''), ' (', CS.s, ')'), ''))]
-    
-    dt_abatNote3 <- dt_abat %>%
-      .[,
-        .(`2B` = ifelse(!is.na(`2B`) & `2B` > 0, paste0(Player, ifelse(`2B` > 1, paste0(' ', `2B`), ''), ' (', `2B.s`, ')'), ''),
-          `3B` = ifelse(!is.na(`3B`) & `3B` > 0, paste0(Player, ifelse(`3B` > 1, paste0(' ', `3B`), ''), ' (', `3B.s`, ')'), ''),
-          `HR` = ifelse(!is.na(HR) & HR > 0, paste0(Player, ifelse(HR > 1, paste0(' ', HR), ''), ' (', `HR.s`, ')'), ''),
-          `RBI` = ifelse(!is.na(BI) & BI > 0, paste0(Player, ifelse(BI > 1, paste0(' ', BI), ''), ' (', `BI.s`, ')'), ''),
-          S = ifelse(!is.na(S) & S > 0, paste0(Player, ifelse(S > 1, paste0(' ', S), '')), ''),
-          SF = ifelse(!is.na(S) & SF > 0, paste0(Player, ifelse(SF > 1, paste0(' ', SF), '')), ''),
-          GIDP = ifelse(!is.na(GIDP) & GIDP > 0, paste0(Player, ifelse(GIDP > 1, paste0(' ', GIDP), '')), ''),
-          GITP = ifelse(!is.na(GITP) & GITP > 0, paste0(Player, ifelse(GITP > 1, paste0(' ', GITP), '')), ''))]
+    dt_abatNote2 <- extract_team_fielding_stats(resp_box$teams$away$players)
+    dt_abatNote3 <- format_batting_extra_stats(dt_abat)
     
     abatIndex <- which(resp_box$teams$away$info$title == 'BATTING')
     afieldIndex <- which(resp_box$teams$away$info$title == 'FIELDING')
@@ -365,57 +411,8 @@ process_all_gamesMLB <- function(year, month, day) {
       DP = ifelse(dt_abatNote4$DP != '', paste0(c_franchiseNameA, ' ', dt_abatNote4$DP), '')
     )
     
-    dt_bnMappingH <- lapply(resp_box$teams$home$players, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      data.table(
-        personID = x[['person']]$id,
-        boxscoreName = c_bn,
-        boxscoreName2 = c_bn2
-      )
-    }) %>%
-      rbindlist()
-    
-    dt_hbat <- lapply(resp_box$teams$home$batters, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      playerData <- resp_box$teams$home$players[[paste0('ID', x)]]
-      
-      data.table(
-        Note = ifelse(is.null(playerData$stats$batting$note),'',playerData$stats$batting$note),
-        Player = c_bn2,
-        Position = playerData$allPositions$abbreviation %>% tolower() %>% paste0(collapse='-'),
-        AB =  playerData$stats$batting$atBats,
-        H = playerData$stats$batting$hits,
-        R = playerData$stats$batting$runs,
-        BI = playerData$stats$batting$rbi,
-        BI.s = playerData$seasonStats$batting$rbi,
-        BB = playerData$stats$batting$baseOnBalls,
-        SO = playerData$stats$batting$strikeOuts,
-        Avg = playerData$seasonStats$batting$avg,
-        `2B` = playerData$stats$batting$doubles,
-        `2B.s` = playerData$seasonStats$batting$doubles,
-        `3B` = playerData$stats$batting$triples,
-        `3B.s` = playerData$seasonStats$batting$triples,
-        `HR` = playerData$stats$batting$homeRuns,
-        `HR.s` = playerData$seasonStats$batting$homeRuns,
-        S = playerData$stats$batting$sacBunts,
-        SF = playerData$stats$batting$sacFlies,
-        GIDP = playerData$stats$batting$groundIntoDoublePlay,
-        GITP = playerData$stats$batting$groundIntoTriplePlay)
-    }) %>%
-      rbindlist(fill = TRUE) %>%
-      .[!is.na(AB)]
+    dt_bnMappingH <- fetch_player_name_mapping(resp_box$teams$home$players)
+    dt_hbat <- extract_team_batting(resp_box$teams$home$batters, resp_box$teams$home$players)
     
     if (length(resp_box$teams$home$note) > 0) {
       dt_hbatNote1 <- resp_box$teams$home$note %>%
@@ -426,39 +423,8 @@ process_all_gamesMLB <- function(year, month, day) {
       dt_hbatNote1 <- ''
     }
     
-    dt_hbatNote2 <- lapply(resp_box$teams$home$players, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x[['person']]$id)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      data.table(
-        Player = c_bn2,
-        E = x$stats$fielding$errors,
-        E.s = x$seasonStats$fielding$errors,
-        SB = x$stats$batting$stolenBases,
-        SB.s = x$seasonStats$batting$stolenBases,
-        CS = x$stats$batting$caughtStealing,
-        CS.s = x$seasonStats$batting$caughtStealing)
-    }) %>%
-      rbindlist(fill = TRUE) %>%
-      .[,
-        .(E = ifelse(!is.na(E) & E > 0, paste0(Player, ifelse(E > 1, paste0(' ', E), ''), ' (', E.s, ')'), ''),
-          SB = ifelse(!is.na(SB) & SB > 0, paste0(Player, ifelse(SB > 1, paste0(' ', SB), ''), ' (', SB.s, ')'), ''),
-          CS = ifelse(!is.na(CS) & CS > 0, paste0(Player, ifelse(CS > 1, paste0(' ', CS), ''), ' (', CS.s, ')'), ''))]
-    
-    dt_hbatNote3 <- dt_hbat %>%
-      .[,
-        .(`2B` = ifelse(!is.na(`2B`) & `2B` > 0, paste0(Player, ifelse(`2B` > 1, paste0(' ', `2B`), ''), ' (', `2B.s`, ')'), ''),
-          `3B` = ifelse(!is.na(`3B`) & `3B` > 0, paste0(Player, ifelse(`3B` > 1, paste0(' ', `3B`), ''), ' (', `3B.s`, ')'), ''),
-          `HR` = ifelse(!is.na(HR) & HR > 0, paste0(Player, ifelse(HR > 1, paste0(' ', HR), ''), ' (', `HR.s`, ')'), ''),
-          `RBI` = ifelse(!is.na(BI) & BI > 0, paste0(Player, ifelse(BI > 1, paste0(' ', BI), ''), ' (', `BI.s`, ')'), ''),
-          S = ifelse(!is.na(S) & S > 0, paste0(Player, ifelse(S > 1, paste0(' ', S), '')), ''),
-          SF = ifelse(!is.na(S) & SF > 0, paste0(Player, ifelse(SF > 1, paste0(' ', SF), '')), ''),
-          GIDP = ifelse(!is.na(GIDP) & GIDP > 0, paste0(Player, ifelse(GIDP > 1, paste0(' ', GIDP), '')), ''),
-          GITP = ifelse(!is.na(GITP) & GITP > 0, paste0(Player, ifelse(GITP > 1, paste0(' ', GITP), '')), ''))]
+    dt_hbatNote2 <- extract_team_fielding_stats(resp_box$teams$home$players)
+    dt_hbatNote3 <- format_batting_extra_stats(dt_hbat)
     
     hbatIndex <- which(resp_box$teams$home$info$title == 'BATTING')
     hfieldIndex <- which(resp_box$teams$home$info$title == 'FIELDING')
@@ -546,56 +512,8 @@ process_all_gamesMLB <- function(year, month, day) {
     
     
     
-    dt_apitch <- lapply(resp_box$teams$away$pitchers, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      playerData <- resp_box$teams$away$players[[paste0('ID', x)]]
-      
-      data.table(
-        Player = paste0(c_bn2, ifelse(is.null(playerData$stats$pitching$note),'', paste0(' ',playerData$stats$pitching$note))),
-        IP =  playerData$stats$pitching$inningsPitched,
-        H = playerData$stats$pitching$hits,
-        R = playerData$stats$pitching$runs,
-        ER = playerData$stats$pitching$earnedRuns,
-        BB = playerData$stats$pitching$baseOnBalls,
-        SO = playerData$stats$pitching$strikeOuts,
-        NP = playerData$stats$pitching$numberOfPitches,
-        ERA = playerData$seasonStats$pitching$era)
-    }) %>%
-      rbindlist(fill = TRUE)
-    
-    setnames(dt_apitch, 'Player', c_franchiseNameA)
-    
-    
-    dt_hpitch <- lapply(resp_box$teams$home$pitchers, function(x) {
-      resp_p <- GET(paste0('http://statsapi.mlb.com/api/v1/people/', x)) %>%
-        content(as = 'text') %>%
-        fromJSON()
-      
-      c_bn <- resp_p$people$boxscoreName
-      c_bn2 <- formatBoxName(c_bn)
-      
-      playerData <- resp_box$teams$home$players[[paste0('ID', x)]]
-      
-      data.table(
-        Player = paste0(c_bn2, ifelse(is.null(playerData$stats$pitching$note),'', paste0(' ',playerData$stats$pitching$note))),
-        IP =  playerData$stats$pitching$inningsPitched,
-        H = playerData$stats$pitching$hits,
-        R = playerData$stats$pitching$runs,
-        ER = playerData$stats$pitching$earnedRuns,
-        BB = playerData$stats$pitching$baseOnBalls,
-        SO = playerData$stats$pitching$strikeOuts,
-        NP = playerData$stats$pitching$numberOfPitches,
-        ERA = playerData$seasonStats$pitching$era)
-    }) %>%
-      rbindlist(fill = TRUE)
-    
-    setnames(dt_hpitch, 'Player', c_franchiseNameH)
+    dt_apitch <- extract_team_pitching(resp_box$teams$away$pitchers, resp_box$teams$away$players, c_franchiseNameA)
+    dt_hpitch <- extract_team_pitching(resp_box$teams$home$pitchers, resp_box$teams$home$players, c_franchiseNameH)
     
     dt_pitchNote <- resp_box$info %>%
       data.table() %>%
@@ -2640,5 +2558,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 
 # Example usage:
-# get_box_scores("2025", "09", "23")
+# get_box_scores("2025", "09", "21")
 
