@@ -882,6 +882,47 @@ generate_pitching_rows <- function(pitching_dt) {
   rows
 }
 
+#' Fetch league leaders for a simple stat category
+#'
+#' @param category Stat category (e.g., "homeRuns", "runsBattedIn", "hits", "stolenBases", "strikeOuts", "saves")
+#' @param stat_group Stat group ("hitting" or "pitching")
+#' @param league_id League ID (103 for AL, 104 for NL)
+#' @param season Season year
+#' @param date End date for the range (YYYY-MM-DD format)
+#' @param limit Number of leaders to fetch (default 8)
+#' @param head_count Number of leaders to process (default 12)
+#' @return List of leader data (Player, Team, Abbrev, Value)
+fetch_simple_leaders <- function(category, stat_group, league_id, season, date, limit = 8, head_count = 12) {
+  url <- paste0(
+    'https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=', category,
+    '&statGroup=', stat_group,
+    '&statType=byDateRange&limit=', limit,
+    '&leagueId=', league_id,
+    '&season=', season,
+    '&startDate=', season, '-01-01&endDate=', date
+  )
+
+  resp <- GET(url) %>% content(as = 'text') %>% fromJSON()
+
+  if (length(resp$leagueLeaders$leaders) > 0) {
+    apply(resp$leagueLeaders$leaders[[1]] %>% head(head_count), 1, function(x) {
+      resp_p <- GET(paste0('https://statsapi.mlb.com/', x['person.link'])) %>%
+        content(as = 'text') %>%
+        fromJSON()
+
+      c_bn2 <- formatBoxName(resp_p$people$boxscoreName)
+
+      resp_tm <- GET(paste0('https://statsapi.mlb.com/', x['team.link'])) %>%
+        content(as = 'text') %>%
+        fromJSON()
+
+      list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
+    })
+  } else {
+    list()
+  }
+}
+
 #' Generate a newspaper-style HTML page with all box scores
 #'
 #' @param games_data List of games' data
@@ -2138,136 +2179,16 @@ get_league_leadersMLB <- function(date) {
     }
     
     # Home Runs
-    resp_hr <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=homeRuns&statGroup=hitting&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_hr$leagueLeaders$leaders) > 0) {
-
-      hr_leaders <- apply(resp_hr$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      hr_leaders <- list()
-    }
+    hr_leaders <- fetch_simple_leaders("homeRuns", "hitting", lg, yr, date)
     
     # RBI
-    resp_rbi <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=runsBattedIn&statGroup=hitting&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_rbi$leagueLeaders$leaders) > 0) {
-
-      rbi_leaders <- apply(resp_rbi$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      rbi_leaders <- list()
-    }
+    rbi_leaders <- fetch_simple_leaders("runsBattedIn", "hitting", lg, yr, date)
     
     # Hits
-    resp_hits <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=hits&statGroup=hitting&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_hits$leagueLeaders$leaders) > 0) {
-
-      hits_leaders <- apply(resp_hits$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      hits_leaders <- list()
-    }
+    hits_leaders <- fetch_simple_leaders("hits", "hitting", lg, yr, date)
     
     # Stolen Bases
-    resp_sb <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=stolenBases&statGroup=hitting&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_sb$leagueLeaders$leaders) > 0) {
-
-      sb_leaders <- apply(resp_sb$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      sb_leaders <- list()
-    }
+    sb_leaders <- fetch_simple_leaders("stolenBases", "hitting", lg, yr, date)
     
     # Process pitching stats
     
@@ -2335,70 +2256,10 @@ get_league_leadersMLB <- function(date) {
     }
     
     # Strikeouts
-    resp_so <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=strikeOuts&statGroup=pitching&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_so$leagueLeaders$leaders) > 0) {
-
-      so_leaders <- apply(resp_so$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      so_leaders <- list()
-    }
+    so_leaders <- fetch_simple_leaders("strikeOuts", "pitching", lg, yr, date)
     
     # Saves
-    resp_sv <- GET(
-      paste0('https://statsapi.mlb.com/api/v1/stats/leaders?leaderCategories=saves&statGroup=pitching&statType=byDateRange&limit=8&leagueId=', lg, '&season=', yr, '&startDate=', yr, '-01-01&endDate=', date)
-    ) %>%
-      content(as = 'text') %>%
-      fromJSON()
-    
-    if (length(resp_sv$leagueLeaders$leaders) > 0) {
-
-      sv_leaders <- apply(resp_sv$leagueLeaders$leaders[[1]] %>% head(12), 1, function(x) {
-
-        resp_p <- GET(
-          paste0('https://statsapi.mlb.com/', x['person.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        c_bn <- resp_p$people$boxscoreName
-        c_bn2 <- formatBoxName(c_bn)
-
-        resp_tm <- GET(
-          paste0('https://statsapi.mlb.com/', x['team.link'])
-        ) %>%
-          content(as = 'text') %>%
-          fromJSON()
-
-        list(Player = c_bn2, Team = resp_tm$teams$shortName, Abbrev = resp_tm$teams$abbreviation, Value = x['value'])
-
-      })
-    } else {
-      sv_leaders <- list()
-    }
+    sv_leaders <- fetch_simple_leaders("saves", "pitching", lg, yr, date)
     
     # Combine all batting leaders
     all_bat_leaders <- list(

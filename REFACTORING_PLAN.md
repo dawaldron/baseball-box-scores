@@ -36,6 +36,12 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Replaced 4 duplicated for loops with single-line helper calls
 - Reduced ~68 lines to ~4 lines
 
+### League Leaders API Calls (Completed 2026-01-19)
+- Added `fetch_simple_leaders()` helper function for fetching leader stats
+- Replaced 6 duplicated API call blocks (HR, RBI, hits, SB, SO, saves) with single-line helper calls
+- Reduced ~180 lines to ~6 lines
+- Note: Wins leaders kept inline due to special W-L record calculation logic
+
 ---
 
 ## Phase 1: High Impact Refactors
