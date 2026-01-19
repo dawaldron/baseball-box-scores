@@ -571,27 +571,7 @@ process_all_gamesMLB <- function(year, month, day) {
       DP = ifelse(dt_hbatNote4$DP != '', paste0(c_franchiseNameH, ' ', dt_hbatNote4$DP), '')
     )
     
-    dt_batNote <- 
-      c(
-        ifelse(dt_abatNote$E != '' | dt_hbatNote$E != '', paste0('<b>E:</b> ', paste0(c(dt_abatNote$E,dt_hbatNote$E) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$LOB != '' | dt_hbatNote$LOB != '', paste0('<b>LOB:</b> ', paste0(c(dt_abatNote$LOB,dt_hbatNote$LOB) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$`2B` != '' | dt_hbatNote$`2B` != '', paste0('<b>2B:</b> ', paste0(c(dt_abatNote$`2B`,dt_hbatNote$`2B`) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$`3B` != '' | dt_hbatNote$`3B` != '', paste0('<b>3B:</b> ', paste0(c(dt_abatNote$`3B`,dt_hbatNote$`3B`) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$HR != '' | dt_hbatNote$HR != '', paste0('<b>HR:</b> ', paste0(c(dt_abatNote$HR,dt_hbatNote$HR) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$RBI != '' | dt_hbatNote$RBI != '', paste0('<b>RBIs:</b> ', paste0(c(dt_abatNote$RBI,dt_hbatNote$RBI) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$SB != '' | dt_hbatNote$SB != '', paste0('<b>SB:</b> ', paste0(c(dt_abatNote$SB,dt_hbatNote$SB) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$CS != '' | dt_hbatNote$CS != '', paste0('<b>CS:</b> ', paste0(c(dt_abatNote$CS,dt_hbatNote$CS) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$S != '' | dt_hbatNote$S != '', paste0('<b>SB:</b> ', paste0(c(dt_abatNote$S,dt_hbatNote$S) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$SF != '' | dt_hbatNote$SF != '', paste0('<b>SF:</b> ', paste0(c(dt_abatNote$SF,dt_hbatNote$SF) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$GIDP != '' | dt_hbatNote$GIDP != '', paste0('<b>GIDP:</b> ', paste0(c(dt_abatNote$GIDP,dt_hbatNote$GIDP) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$GITP != '' | dt_hbatNote$GITP != '', paste0('<b>GITP:</b> ', paste0(c(dt_abatNote$GITP,dt_hbatNote$GITP) %>% .[. != ''], collapse = ', ')), ''),
-        ifelse(dt_abatNote$DP != '' | dt_hbatNote$DP != '', paste0('<b>DP:</b> ', paste0(c(dt_abatNote$DP,dt_hbatNote$DP) %>% .[. != ''], collapse = ', ')), '')
-      ) %>%
-      .[. != ''] %>%
-      paste0(collapse = '. ') %>%
-      paste0(ifelse(dt_abatNote$footnote != '' | dt_hbatNote$footnote != '', paste0(paste0(c(dt_abatNote$footnote,dt_hbatNote$footnote) %>% .[. != ''], collapse = ', '),'<br>'), ''),
-             .,
-             '.')
+    dt_batNote <- format_combined_batting_notes(dt_abatNote, dt_hbatNote)
     
     
     
@@ -618,40 +598,11 @@ process_all_gamesMLB <- function(year, month, day) {
       dt_pitchNote <- gsub(dt_bnMappingH[i, boxscoreName], dt_bnMappingH[i, boxscoreName2], dt_pitchNote, fixed = TRUE)
     }
 
-    # Extract game time
-    c_gameTime <- tryCatch({
-      paste0(floor(resp_game$gameData$gameInfo$gameDurationMinutes / 60), 'h ', (resp_game$gameData$gameInfo$gameDurationMinutes %% 60), 'm')
-    }, error = function(e) "")
-
-    # Extract attendance
-    n_attendance <- tryCatch({
-      resp_game$gameData$gameInfo$attendance
-    }, error = function(e) NA)
-
-    # Extract umpires
-    c_umpires <- tryCatch({
-      officials <- resp_game$liveData$boxscore$officials
-      if (!is.null(officials) && nrow(officials) > 0) {
-        ump_strings <- sapply(1:nrow(officials), function(i) {
-          role <- officials[i,]$officialType
-          name <- officials[i,]$official$fullName
-          # Shorten role names
-          role_short <- switch(role,
-            "Home Plate" = "H",
-            "First Base" = "1",
-            "Second Base" = "2",
-            "Third Base" = "3",
-            "Left Field" = "L",
-            "Right Field" = "R",
-            role
-          )
-          paste0(role_short, "-", name)
-        })
-        paste0(ump_strings, collapse = ", ")
-      } else {
-        ""
-      }
-    }, error = function(e) "")
+    # Extract game metadata (time, attendance, umpires)
+    game_metadata <- extract_game_metadata(resp_game)
+    c_gameTime <- game_metadata$gameTime
+    n_attendance <- game_metadata$attendance
+    c_umpires <- game_metadata$umpires
 
     list(
       teams = list(
@@ -781,6 +732,103 @@ extract_clinch_footnotes <- function(team_names) {
   if (any(grepl("^y-", team_names))) footnotes <- c(footnotes, "y-clinched division")
   if (any(grepl("^z-", team_names))) footnotes <- c(footnotes, "z-clinched best record")
   footnotes
+}
+
+#' Extract game metadata (time, attendance, umpires) from game feed
+#'
+#' @param resp_game Response from game feed API
+#' @return List with gameTime, attendance, and umpires fields
+extract_game_metadata <- function(resp_game) {
+  # Extract game duration
+  game_time <- tryCatch({
+    mins <- resp_game$gameData$gameInfo$gameDurationMinutes
+    paste0(floor(mins / 60), 'h ', (mins %% 60), 'm')
+  }, error = function(e) "")
+
+  # Extract attendance
+  attendance <- tryCatch({
+    resp_game$gameData$gameInfo$attendance
+  }, error = function(e) NA)
+
+  # Extract umpires
+  umpires <- tryCatch({
+    officials <- resp_game$liveData$boxscore$officials
+    if (!is.null(officials) && nrow(officials) > 0) {
+      ump_strings <- sapply(1:nrow(officials), function(i) {
+        role <- officials[i, ]$officialType
+        name <- officials[i, ]$official$fullName
+        role_short <- switch(role,
+          "Home Plate" = "H",
+          "First Base" = "1",
+          "Second Base" = "2",
+          "Third Base" = "3",
+          "Left Field" = "L",
+          "Right Field" = "R",
+          role
+        )
+        paste0(role_short, "-", name)
+      })
+      paste0(ump_strings, collapse = ", ")
+    } else {
+      ""
+    }
+  }, error = function(e) "")
+
+  list(
+    gameTime = game_time,
+    attendance = attendance,
+    umpires = umpires
+  )
+}
+
+#' Combine and format batting notes from both teams
+#'
+#' @param away_notes data.table with away team batting notes
+#' @param home_notes data.table with home team batting notes
+#' @return Formatted HTML string with all batting notes
+format_combined_batting_notes <- function(away_notes, home_notes) {
+  # Define stat types and their display labels
+  note_config <- list(
+    list(col = "E", label = "E"),
+    list(col = "LOB", label = "LOB"),
+    list(col = "2B", label = "2B"),
+    list(col = "3B", label = "3B"),
+    list(col = "HR", label = "HR"),
+    list(col = "RBI", label = "RBIs"),
+    list(col = "SB", label = "SB"),
+    list(col = "CS", label = "CS"),
+    list(col = "S", label = "S"),
+    list(col = "SF", label = "SF"),
+    list(col = "GIDP", label = "GIDP"),
+    list(col = "GITP", label = "GITP"),
+    list(col = "DP", label = "DP")
+  )
+
+  # Build notes for each stat type
+  notes <- sapply(note_config, function(cfg) {
+    away_val <- away_notes[[cfg$col]]
+    home_val <- home_notes[[cfg$col]]
+
+    if ((away_val != '' && !is.na(away_val)) || (home_val != '' && !is.na(home_val))) {
+      combined <- c(away_val, home_val) %>% .[. != '' & !is.na(.)] %>% paste0(collapse = ', ')
+      paste0('<b>', cfg$label, ':</b> ', combined)
+    } else {
+      ''
+    }
+  })
+
+  # Combine non-empty notes
+  result <- notes[notes != ''] %>% paste0(collapse = '. ')
+
+  # Handle footnotes
+  away_fn <- away_notes$footnotes
+  home_fn <- home_notes$footnotes
+  if ((away_fn != '' && !is.na(away_fn)) || (home_fn != '' && !is.na(home_fn))) {
+    fn_combined <- c(away_fn, home_fn) %>% .[. != '' & !is.na(.)] %>% paste0(collapse = ', ')
+    result <- paste0(fn_combined, '<br>', result)
+  }
+
+  paste0(result, '.')
 }
 
 #' Generate a newspaper-style HTML page with all box scores

@@ -20,6 +20,16 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Replaced 6 duplicated table blocks (AL/NL East/Central/West) with helper calls
 - Reduced ~260 lines to ~30 lines
 
+### Batting Notes Formatting (Completed 2026-01-19)
+- Added `format_combined_batting_notes()` helper function
+- Replaced 21-line ifelse chain with single helper call
+- More maintainable: stat types defined in config list
+
+### Game Metadata Extraction (Completed 2026-01-19)
+- Added `extract_game_metadata()` helper function
+- Consolidated 3 tryCatch blocks (game time, attendance, umpires) into one
+- Reduced ~35 lines to ~5 lines
+
 ---
 
 ## Phase 1: High Impact Refactors
