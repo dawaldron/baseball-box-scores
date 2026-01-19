@@ -47,6 +47,12 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Function had no parent scope dependencies, making extraction straightforward
 - Improves testability and code organization
 
+### Break Down generate_newspaper_page2 - Phase 1 (Completed 2026-01-19)
+- Added `generate_schedule_html()` helper (~100 lines extracted)
+- Added `generate_boxscores_html()` helper (~200 lines extracted)
+- Reduced `generate_newspaper_page2()` from ~900 lines to ~600 lines
+- Remaining: Leaders section extraction (future work)
+
 ---
 
 ## Phase 1: High Impact Refactors

@@ -925,6 +925,318 @@ fetch_simple_leaders <- function(category, stat_group, league_id, season, date, 
   }
 }
 
+#' Generate HTML for the games schedule section (yesterday/today/tomorrow)
+#'
+#' @param games_schedule_data List with yesterday, today, tomorrow game data
+#' @return HTML string for the games schedule section
+generate_schedule_html <- function(games_schedule_data) {
+  if (is.null(games_schedule_data)) return("")
+
+  html <- paste0(
+    "    <div class='page'>\n",
+    "      <div class='games-section'>\n",
+    "        <div class='column-container'>\n",
+    "          <div class='games-left'>\n",
+    "            <div class='games-section-title'>TODAY'S GAMES</div>\n",
+    "            <div class='games-left-inner'>\n"
+  )
+
+  # Today's games with pitchers
+  if (length(games_schedule_data$today) > 0) {
+    for (game in games_schedule_data$today) {
+      away_pitcher_str <- if (!is.null(game$away$pitcher)) {
+        paste0(game$away$pitcher$name, " (", game$away$pitcher$wins, "-",
+               game$away$pitcher$losses, ", ", game$away$pitcher$era, ")")
+      } else {
+        "TBD"
+      }
+
+      home_pitcher_str <- if (!is.null(game$home$pitcher)) {
+        paste0(game$home$pitcher$name, " (", game$home$pitcher$wins, "-",
+               game$home$pitcher$losses, ", ", game$home$pitcher$era, ")")
+      } else {
+        "TBD"
+      }
+
+      html <- paste0(
+        html,
+        "              <div class='scheduled-game' data-team-away='", game$away$abbrev,
+        "' data-team-home='", game$home$abbrev, "'>\n",
+        "                <div class='game-time'>", game$gameTime, "</div>\n",
+        "                <div class='matchup'>", game$away$shortName, " at ", game$home$shortName, "</div>\n",
+        "                <div class='pitchers'>", away_pitcher_str, " vs. ", home_pitcher_str, "</div>\n",
+        "              </div>\n"
+      )
+    }
+  } else {
+    html <- paste0(html, "              <div>No games scheduled</div>\n")
+  }
+
+  html <- paste0(
+    html,
+    "            </div>\n",
+    "          </div>\n",
+    "          <div class='games-right'>\n",
+    "            <div>\n",
+    "              <div class='games-section-title'>YESTERDAY'S SCORES</div>\n"
+  )
+
+  # Yesterday's scores
+  if (length(games_schedule_data$yesterday) > 0) {
+    for (game in games_schedule_data$yesterday) {
+      winner <- if (game$away_score > game$home_score) "away" else "home"
+      html <- paste0(
+        html,
+        "              <div class='game-score-line' data-team-away='", game$away_abbrev,
+        "' data-team-home='", game$home_abbrev, "'>\n",
+        "                <span class='", ifelse(winner == "away", "winner", ""), "'>",
+        game$away_team, " ", game$away_score, "</span>, ",
+        "<span class='", ifelse(winner == "home", "winner", ""), "'>",
+        game$home_team, " ", game$home_score, "</span>\n",
+        "              </div>\n"
+      )
+    }
+  } else {
+    html <- paste0(html, "              <div>No games</div>\n")
+  }
+
+  html <- paste0(
+    html,
+    "            </div>\n",
+    "            <div>\n",
+    "              <div class='games-section-title'>TOMORROW'S GAMES</div>\n"
+  )
+
+  # Tomorrow's games
+  if (length(games_schedule_data$tomorrow) > 0) {
+    for (game in games_schedule_data$tomorrow) {
+      html <- paste0(
+        html,
+        "              <div class='tomorrow-game' data-team-away='", game$away$abbrev,
+        "' data-team-home='", game$home$abbrev, "'>\n",
+        "                ", game$away$shortName, " at ", game$home$shortName, "\n",
+        "              </div>\n"
+      )
+    }
+  } else {
+    html <- paste0(html, "              <div>No games scheduled</div>\n")
+  }
+
+  html <- paste0(
+    html,
+    "            </div>\n",
+    "          </div>\n",
+    "        </div>\n",
+    "      </div>\n"
+  )
+
+  html
+}
+
+#' Generate HTML for the box scores section
+#'
+#' @param games_data List of games' data
+#' @return HTML string for the box scores section
+generate_boxscores_html <- function(games_data) {
+  html <- paste0(
+    "    </div>\n",
+    "    <div class='page'>\n",
+    "      <div class='boxscores-title'>YESTERDAY'S BOX SCORES</div>\n",
+    "      <div class='boxscores-container'>\n"
+  )
+
+  for (i in seq_along(games_data)) {
+    game <- games_data[[i]]
+
+    # Game title with team names and scores
+    game_title <- if (game$teams$visitor$score > game$teams$home$score) {
+      paste0(
+        game$teams$visitor$name, " ", game$teams$visitor$score, ", ",
+        game$teams$home$name, " ", game$teams$home$score
+      )
+    } else {
+      paste0(
+        game$teams$home$name, " ", game$teams$home$score, ", ",
+        game$teams$visitor$name, " ", game$teams$visitor$score
+      )
+    }
+
+    # Use team names instead of city names when both teams are from the same city
+    visitor_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
+                              game$teams$visitor$name,
+                              game$teams$visitor$place)
+    home_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
+                           game$teams$home$name,
+                           game$teams$home$place)
+
+    html <- paste0(
+      html,
+      "        <div class='game-container' data-team-away='", game$teams$visitor$abbrev,
+      "' data-team-home='", game$teams$home$abbrev, "'>\n",
+      "          <div class='game-header'>", game_title, "</div>\n",
+      "          <div class='team-line'>\n",
+      "            <div class='team-name'>", visitor_display, "</div>\n",
+      "            <div class='team-score'>",
+      paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$visitor$line, collapse='')), "&mdash; ",
+            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[1]))), "&numsp;",
+            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[2]))), "&numsp;",
+            as.integer(game$teams$visitor$stats[3])),
+      "            </div>\n",
+      "          </div>\n",
+      "          <div class='team-line'>\n",
+      "            <div class='team-name'>", home_display, "</div>\n",
+      "            <div class='team-score'>",
+      paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$home$line, collapse='')), "&mdash; ",
+            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[1]))), "&numsp;",
+            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[2]))), "&numsp;",
+            as.integer(game$teams$home$stats[3])),
+      "            </div>\n",
+      "          </div>\n"
+    )
+
+    # Visitor batting
+    html <- paste0(
+      html,
+      "          <table class='batting-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
+      "              <th class='stat-col'>AB</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>BI</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='avg-col'>Avg</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
+    )
+
+    html <- paste0(html, generate_batting_rows(game$batting$visitor))
+
+    html <- paste0(
+      html,
+      "          </tbody>\n",
+      "          </table>\n"
+    )
+
+    # Home batting
+    html <- paste0(
+      html,
+      "          <table class='batting-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
+      "              <th class='stat-col'>AB</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>BI</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='avg-col'>Avg</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
+    )
+
+    html <- paste0(html, generate_batting_rows(game$batting$home))
+
+    html <- paste0(
+      html,
+      "          </tbody>\n",
+      "          </table>\n",
+      "          <div class='notes'>", game$batting$notes, "</div>\n"
+    )
+
+    # Pitching tables - Visitor
+    html <- paste0(
+      html,
+      "          <table class='pitching-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
+      "              <th class='ip-col'>IP</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>ER</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='stat-col'>NP</th>\n",
+      "              <th class='era-col'>ERA</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
+    )
+
+    html <- paste0(html, generate_pitching_rows(game$pitching$visitor))
+
+    html <- paste0(
+      html,
+      "          </tbody>\n",
+      "          </table>\n"
+    )
+
+    # Pitching tables - Home
+    html <- paste0(
+      html,
+      "          <table class='pitching-table'>\n",
+      "          <thead>\n",
+      "            <tr>\n",
+      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
+      "              <th class='ip-col'>IP</th>\n",
+      "              <th class='stat-col'>H</th>\n",
+      "              <th class='stat-col'>R</th>\n",
+      "              <th class='stat-col'>ER</th>\n",
+      "              <th class='stat-col'>BB</th>\n",
+      "              <th class='stat-col'>SO</th>\n",
+      "              <th class='stat-col'>NP</th>\n",
+      "              <th class='era-col'>ERA</th>\n",
+      "            </tr>\n",
+      "          </thead>\n",
+      "          <tbody>\n"
+    )
+
+    html <- paste0(html, generate_pitching_rows(game$pitching$home))
+
+    html <- paste0(
+      html,
+      "          </tbody>\n",
+      "          </table>\n"
+    )
+
+    # Game info (time, attendance, umpires)
+    c_gameInfoParts <- c()
+    if (!is.null(game$gameInfo$umpires) && nchar(game$gameInfo$umpires) > 0) {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0('<b> Umpires: </b>', game$gameInfo$umpires,'.'))
+    }
+    if (!is.null(game$gameInfo$gameTime) && nchar(game$gameInfo$gameTime) > 0 && game$gameInfo$gameTime != " ") {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> T: </b>", game$gameInfo$gameTime, '.'))
+    }
+    if (!is.null(game$gameInfo$attendance) && !is.na(game$gameInfo$attendance)) {
+      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> A: </b>", format(game$gameInfo$attendance, big.mark = ","), '.'))
+    }
+
+    gameInfoNotes <- ''
+    if (length(c_gameInfoParts) > 0) {
+      gameInfoNotes <- paste0(c_gameInfoParts, collapse = "")
+    }
+
+    # Game notes
+    html <- paste0(
+      html,
+      "          <div class='notes'>", game$pitching$notes, gameInfoNotes, "</div>\n"
+    )
+
+    html <- paste0(
+      html,
+      "        </div>\n"
+    )
+  }
+
+  html
+}
+
 #' Generate a newspaper-style HTML page with all box scores
 #'
 #' @param games_data List of games' data
@@ -1527,312 +1839,12 @@ generate_newspaper_page2 <- function(games_data, date_str,
     )
   }
 
-  # Add games schedule section if available
-  if (!is.null(games_schedule_data)) {
-    html_content <- paste0(
-      html_content,
-      "    <div class='page'>\n",
-      "      <div class='games-section'>\n",
-      "        <div class='column-container'>\n",
-      "          <div class='games-left'>\n",
-      "            <div class='games-section-title'>TODAY'S GAMES</div>\n",
-      "            <div class='games-left-inner'>\n"
-    )
-
-    # Today's games with pitchers
-    if (length(games_schedule_data$today) > 0) {
-      for (game in games_schedule_data$today) {
-        # Format pitcher info
-        away_pitcher_str <- if (!is.null(game$away$pitcher)) {
-          paste0(game$away$pitcher$name, " (", game$away$pitcher$wins, "-",
-                 game$away$pitcher$losses, ", ", game$away$pitcher$era, ")")
-        } else {
-          "TBD"
-        }
-
-        home_pitcher_str <- if (!is.null(game$home$pitcher)) {
-          paste0(game$home$pitcher$name, " (", game$home$pitcher$wins, "-",
-                 game$home$pitcher$losses, ", ", game$home$pitcher$era, ")")
-        } else {
-          "TBD"
-        }
-
-        html_content <- paste0(
-          html_content,
-          "              <div class='scheduled-game' data-team-away='", game$away$abbrev,
-          "' data-team-home='", game$home$abbrev, "'>\n",
-          "                <div class='game-time'>", game$gameTime, "</div>\n",
-          "                <div class='matchup'>", game$away$shortName, " at ", game$home$shortName, "</div>\n",
-          "                <div class='pitchers'>", away_pitcher_str, " vs. ", home_pitcher_str, "</div>\n",
-          "              </div>\n"
-        )
-      }
-    } else {
-      html_content <- paste0(html_content, "              <div>No games scheduled</div>\n")
-    }
-
-    html_content <- paste0(
-      html_content,
-      "            </div>\n",
-      "          </div>\n",
-      "          <div class='games-right'>\n",
-      "            <div>\n",
-      "              <div class='games-section-title'>YESTERDAY'S SCORES</div>\n"
-    )
-
-    # Yesterday's scores
-    if (length(games_schedule_data$yesterday) > 0) {
-      for (game in games_schedule_data$yesterday) {
-        winner <- if (game$away_score > game$home_score) "away" else "home"
-        html_content <- paste0(
-          html_content,
-          "              <div class='game-score-line' data-team-away='", game$away_abbrev,
-          "' data-team-home='", game$home_abbrev, "'>\n",
-          "                <span class='", ifelse(winner == "away", "winner", ""), "'>",
-          game$away_team, " ", game$away_score, "</span>, ",
-          "<span class='", ifelse(winner == "home", "winner", ""), "'>",
-          game$home_team, " ", game$home_score, "</span>\n",
-          "              </div>\n"
-        )
-      }
-    } else {
-      html_content <- paste0(html_content, "              <div>No games</div>\n")
-    }
-
-    html_content <- paste0(
-      html_content,
-      "            </div>\n",
-      "            <div>\n",
-      "              <div class='games-section-title'>TOMORROW'S GAMES</div>\n"
-    )
-
-    # Tomorrow's games
-    if (length(games_schedule_data$tomorrow) > 0) {
-      for (game in games_schedule_data$tomorrow) {
-        html_content <- paste0(
-          html_content,
-          "              <div class='tomorrow-game' data-team-away='", game$away$abbrev,
-          "' data-team-home='", game$home$abbrev, "'>\n",
-          "                ", game$away$shortName, " at ", game$home$shortName, "\n",
-          "              </div>\n"
-        )
-      }
-    } else {
-      html_content <- paste0(html_content, "              <div>No games scheduled</div>\n")
-    }
-
-    html_content <- paste0(
-      html_content,
-      "            </div>\n",
-      "          </div>\n",
-      "        </div>\n",
-      "      </div>\n"
-    )
-  }
+  # Add games schedule section
+  html_content <- paste0(html_content, generate_schedule_html(games_schedule_data))
 
   # Add box scores section
-  html_content <- paste0(
-    html_content,
-    "    </div>\n",
-    "    <div class='page'>\n",
-    "      <div class='boxscores-title'>YESTERDAY'S BOX SCORES</div>\n",
-    "      <div class='boxscores-container'>\n"
-  )
-  
-  # Add each game box score
-  for (i in seq_along(games_data)) {
-    game <- games_data[[i]]
-    
-    # Game title with team names and scores
-    game_title <- if (game$teams$visitor$score > game$teams$home$score) {
-      paste0(
-        game$teams$visitor$name, " ", game$teams$visitor$score, ", ",
-        game$teams$home$name, " ", game$teams$home$score
-      )
-    } else {
-      paste0(
-        game$teams$home$name, " ", game$teams$home$score, ", ",
-        game$teams$visitor$name, " ", game$teams$visitor$score
-      )
-    }
-    
-    # Use team names instead of city names when both teams are from the same city
-    visitor_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
-                              game$teams$visitor$name,
-                              game$teams$visitor$place)
-    home_display <- ifelse(game$teams$visitor$place == game$teams$home$place,
-                           game$teams$home$name,
-                           game$teams$home$place)
+  html_content <- paste0(html_content, generate_boxscores_html(games_data))
 
-    html_content <- paste0(
-      html_content,
-      "        <div class='game-container' data-team-away='", game$teams$visitor$abbrev,
-      "' data-team-home='", game$teams$home$abbrev, "'>\n",
-      "          <div class='game-header'>", game_title, "</div>\n",
-      "          <div class='team-line'>\n",
-      "            <div class='team-name'>", visitor_display, "</div>\n",
-      "            <div class='team-score'>",
-      paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$visitor$line, collapse='')), "&mdash; ",
-            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[1]))), "&numsp;",
-            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$visitor$stats[2]))), "&numsp;",
-            as.integer(game$teams$visitor$stats[3])),
-      "            </div>\n",
-      "          </div>\n",
-      "          <div class='team-line'>\n",
-      "            <div class='team-name'>", home_display, "</div>\n",
-      "            <div class='team-score'>",
-      paste(gsub("(.{3})", "\\1&numsp;", paste0(game$teams$home$line, collapse='')), "&mdash; ",
-            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[1]))), "&numsp;",
-            gsub('\\s','&numsp;',sprintf('%02s', as.integer(game$teams$home$stats[2]))), "&numsp;",
-            as.integer(game$teams$home$stats[3])),
-      "            </div>\n",
-      "          </div>\n"
-    )
-    
-    # Visitor batting
-    html_content <- paste0(
-      html_content,
-      "          <table class='batting-table'>\n",
-      "          <thead>\n",
-      "            <tr>\n",
-      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
-      "              <th class='stat-col'>AB</th>\n",
-      "              <th class='stat-col'>R</th>\n",
-      "              <th class='stat-col'>H</th>\n",
-      "              <th class='stat-col'>BI</th>\n",
-      "              <th class='stat-col'>BB</th>\n",
-      "              <th class='stat-col'>SO</th>\n",
-      "              <th class='avg-col'>Avg</th>\n",
-      "            </tr>\n",
-      "          </thead>\n",
-      "          <tbody>\n"
-    )
-    
-    # Add visitor batting rows
-    html_content <- paste0(html_content, generate_batting_rows(game$batting$visitor))
-    
-    html_content <- paste0(
-      html_content,
-      "          </tbody>\n",
-      "          </table>\n"
-    )
-    
-    # Home batting
-    html_content <- paste0(
-      html_content,
-      "          <table class='batting-table'>\n",
-      "          <thead>\n",
-      "            <tr>\n",
-      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
-      "              <th class='stat-col'>AB</th>\n",
-      "              <th class='stat-col'>R</th>\n",
-      "              <th class='stat-col'>H</th>\n",
-      "              <th class='stat-col'>BI</th>\n",
-      "              <th class='stat-col'>BB</th>\n",
-      "              <th class='stat-col'>SO</th>\n",
-      "              <th class='avg-col'>Avg</th>\n",
-      "            </tr>\n",
-      "          </thead>\n",
-      "          <tbody>\n"
-    )
-    
-    # Add home batting rows
-    html_content <- paste0(html_content, generate_batting_rows(game$batting$home))
-    
-    html_content <- paste0(
-      html_content,
-      "          </tbody>\n",
-      "          </table>\n",
-      "          <div class='notes'>", game$batting$notes, "</div>\n"
-    )
-    
-    # Pitching tables - Visitor
-    html_content <- paste0(
-      html_content,
-      "          <table class='pitching-table'>\n",
-      "          <thead>\n",
-      "            <tr>\n",
-      "              <th class='player-col'>", game$teams$visitor$place, "</th>\n",
-      "              <th class='ip-col'>IP</th>\n",
-      "              <th class='stat-col'>H</th>\n",
-      "              <th class='stat-col'>R</th>\n",
-      "              <th class='stat-col'>ER</th>\n",
-      "              <th class='stat-col'>BB</th>\n",
-      "              <th class='stat-col'>SO</th>\n",
-      "              <th class='stat-col'>NP</th>\n",
-      "              <th class='era-col'>ERA</th>\n",
-      "            </tr>\n",
-      "          </thead>\n",
-      "          <tbody>\n"
-    )
-    
-    # Add visitor pitching rows
-    html_content <- paste0(html_content, generate_pitching_rows(game$pitching$visitor))
-    
-    html_content <- paste0(
-      html_content,
-      "          </tbody>\n",
-      "          </table>\n"
-    )
-    
-    # Pitching tables - Home
-    html_content <- paste0(
-      html_content,
-      "          <table class='pitching-table'>\n",
-      "          <thead>\n",
-      "            <tr>\n",
-      "              <th class='player-col'>", game$teams$home$place, "</th>\n",
-      "              <th class='ip-col'>IP</th>\n",
-      "              <th class='stat-col'>H</th>\n",
-      "              <th class='stat-col'>R</th>\n",
-      "              <th class='stat-col'>ER</th>\n",
-      "              <th class='stat-col'>BB</th>\n",
-      "              <th class='stat-col'>SO</th>\n",
-      "              <th class='stat-col'>NP</th>\n",
-      "              <th class='era-col'>ERA</th>\n",
-      "            </tr>\n",
-      "          </thead>\n",
-      "          <tbody>\n"
-    )
-    
-    # Add home pitching rows
-    html_content <- paste0(html_content, generate_pitching_rows(game$pitching$home))
-    
-    html_content <- paste0(
-      html_content,
-      "          </tbody>\n",
-      "          </table>\n"
-    )
-
-    # Game info (time, attendance, umpires)
-    c_gameInfoParts <- c()
-    if (!is.null(game$gameInfo$umpires) && nchar(game$gameInfo$umpires) > 0) {
-      c_gameInfoParts <- c(c_gameInfoParts, paste0('<b> Umpires: </b>', game$gameInfo$umpires,'.'))
-    }
-    if (!is.null(game$gameInfo$gameTime) && nchar(game$gameInfo$gameTime) > 0 && game$gameInfo$gameTime != " ") {
-      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> T: </b>", game$gameInfo$gameTime, '.'))
-    }
-    if (!is.null(game$gameInfo$attendance) && !is.na(game$gameInfo$attendance)) {
-      c_gameInfoParts <- c(c_gameInfoParts, paste0("<b> A: </b>", format(game$gameInfo$attendance, big.mark = ","), '.'))
-    }
-    
-    gameInfoNotes <- ''
-    if (length(c_gameInfoParts) > 0) {
-      gameInfoNotes <- paste0(c_gameInfoParts, collapse = "")
-    }
-    
-    # Game notes
-    html_content <- paste0(
-      html_content,
-      "          <div class='notes'>", game$pitching$notes, gameInfoNotes, "</div>\n"
-    )
-
-    html_content <- paste0(
-      html_content,
-      "        </div>\n"
-    )
-  }
-  
   # Close the boxscores-container and newspaper divs
   html_content <- paste0(
     html_content,
