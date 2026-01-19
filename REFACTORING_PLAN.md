@@ -42,6 +42,11 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Reduced ~180 lines to ~6 lines
 - Note: Wins leaders kept inline due to special W-L record calculation logic
 
+### Move process_game_box_scoreMLB to Top Level (Completed 2026-01-19)
+- Moved `process_game_box_scoreMLB()` from nested function to top-level
+- Function had no parent scope dependencies, making extraction straightforward
+- Improves testability and code organization
+
 ---
 
 ## Phase 1: High Impact Refactors

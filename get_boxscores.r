@@ -375,22 +375,11 @@ extract_team_pitching <- function(pitchers, players_data, franchise_name) {
   dt
 }
 
-#' Process all games for a given date
-#' 
-#' @param year Year (YYYY)
-#' @param month Month (MM)
-#' @param day Day (DD)
-#' @param season Season year
-#' @return List of all games' data
-process_all_gamesMLB <- function(year, month, day) {
-
-  # Get all games for the specified date
-  games <- GET(build_schedule_url(paste0(year, '-', month, '-', day))) %>%
-    content(as = 'text') %>%
-    fromJSON()
-
-  # Process each game's box score
-  process_game_box_scoreMLB <- function(gameId) {
+#' Process a single game's box score data from MLB API
+#'
+#' @param gameId MLB game ID
+#' @return List containing teams, batting, pitching, and gameInfo data
+process_game_box_scoreMLB <- function(gameId) {
     print(gameId)
     resp_box <- GET(build_boxscore_url(gameId)) %>%
       content(as = 'text') %>%
@@ -639,8 +628,21 @@ process_all_gamesMLB <- function(year, month, day) {
         umpires = c_umpires
       )
     )
-  }
-  
+}
+
+#' Process all games for a given date
+#'
+#' @param year Year (YYYY)
+#' @param month Month (MM)
+#' @param day Day (DD)
+#' @return List of all games' data
+process_all_gamesMLB <- function(year, month, day) {
+
+  # Get all games for the specified date
+  games <- GET(build_schedule_url(paste0(year, '-', month, '-', day))) %>%
+    content(as = 'text') %>%
+    fromJSON()
+
   all_games_data <- games$dates$games[[1]] %>%
     data.table() %>%
     .[status.statusCode %in% c('F','FR'), gamePk] %>%
