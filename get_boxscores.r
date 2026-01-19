@@ -831,6 +831,57 @@ format_combined_batting_notes <- function(away_notes, home_notes) {
   paste0(result, '.')
 }
 
+#' Generate HTML rows for a batting table
+#'
+#' @param batting_dt data.table with batting stats
+#' @return HTML string with table rows
+generate_batting_rows <- function(batting_dt) {
+  rows <- ""
+  for (j in 1:nrow(batting_dt)) {
+    row <- batting_dt[j, ]
+    rows <- paste0(
+      rows,
+      "            <tr>\n",
+      "              <td class='player-col'>", row[[1]], "</td>\n",
+      "              <td class='stat-col'>", row$AB, "</td>\n",
+      "              <td class='stat-col'>", row$R, "</td>\n",
+      "              <td class='stat-col'>", row$H, "</td>\n",
+      "              <td class='stat-col'>", row$BI, "</td>\n",
+      "              <td class='stat-col'>", row$BB, "</td>\n",
+      "              <td class='stat-col'>", row$SO, "</td>\n",
+      "              <td class='avg-col'>", row$Avg, "</td>\n",
+      "            </tr>\n"
+    )
+  }
+  rows
+}
+
+#' Generate HTML rows for a pitching table
+#'
+#' @param pitching_dt data.table with pitching stats
+#' @return HTML string with table rows
+generate_pitching_rows <- function(pitching_dt) {
+  rows <- ""
+  for (j in 1:nrow(pitching_dt)) {
+    row <- pitching_dt[j, ]
+    rows <- paste0(
+      rows,
+      "            <tr>\n",
+      "              <td class='player-col'>", row[[1]], "</td>\n",
+      "              <td class='ip-col'>", row$IP, "</td>\n",
+      "              <td class='stat-col'>", row$H, "</td>\n",
+      "              <td class='stat-col'>", row$R, "</td>\n",
+      "              <td class='stat-col'>", row$ER, "</td>\n",
+      "              <td class='stat-col'>", row$BB, "</td>\n",
+      "              <td class='stat-col'>", row$SO, "</td>\n",
+      "              <td class='stat-col'>", row$NP, "</td>\n",
+      "              <td class='era-col'>", row$ERA, "</td>\n",
+      "            </tr>\n"
+    )
+  }
+  rows
+}
+
 #' Generate a newspaper-style HTML page with all box scores
 #'
 #' @param games_data List of games' data
@@ -1615,23 +1666,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     )
     
     # Add visitor batting rows
-    for (j in 1:nrow(game$batting$visitor)) {
-      row <- game$batting$visitor[j,]
-      player_name <- names(row)[1] # First column name is team place
-      html_content <- paste0(
-        html_content,
-        "            <tr>\n",
-        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "              <td class='stat-col'>", row$AB, "</td>\n",
-        "              <td class='stat-col'>", row$R, "</td>\n",
-        "              <td class='stat-col'>", row$H, "</td>\n",
-        "              <td class='stat-col'>", row$BI, "</td>\n",
-        "              <td class='stat-col'>", row$BB, "</td>\n",
-        "              <td class='stat-col'>", row$SO, "</td>\n",
-        "              <td class='avg-col'>", row$Avg, "</td>\n",
-        "            </tr>\n"
-      )
-    }
+    html_content <- paste0(html_content, generate_batting_rows(game$batting$visitor))
     
     html_content <- paste0(
       html_content,
@@ -1659,23 +1694,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     )
     
     # Add home batting rows
-    for (j in 1:nrow(game$batting$home)) {
-      row <- game$batting$home[j,]
-      player_name <- names(row)[1] # First column name is team place
-      html_content <- paste0(
-        html_content,
-        "            <tr>\n",
-        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "              <td class='stat-col'>", row$AB, "</td>\n",
-        "              <td class='stat-col'>", row$R, "</td>\n",
-        "              <td class='stat-col'>", row$H, "</td>\n",
-        "              <td class='stat-col'>", row$BI, "</td>\n",
-        "              <td class='stat-col'>", row$BB, "</td>\n",
-        "              <td class='stat-col'>", row$SO, "</td>\n",
-        "              <td class='avg-col'>", row$Avg, "</td>\n",
-        "            </tr>\n"
-      )
-    }
+    html_content <- paste0(html_content, generate_batting_rows(game$batting$home))
     
     html_content <- paste0(
       html_content,
@@ -1705,24 +1724,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     )
     
     # Add visitor pitching rows
-    for (j in 1:nrow(game$pitching$visitor)) {
-      row <- game$pitching$visitor[j,]
-      player_name <- names(row)[1] # First column name is team place
-      html_content <- paste0(
-        html_content,
-        "            <tr>\n",
-        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "              <td class='ip-col'>", row$IP, "</td>\n",
-        "              <td class='stat-col'>", row$H, "</td>\n",
-        "              <td class='stat-col'>", row$R, "</td>\n",
-        "              <td class='stat-col'>", row$ER, "</td>\n",
-        "              <td class='stat-col'>", row$BB, "</td>\n",
-        "              <td class='stat-col'>", row$SO, "</td>\n",
-        "              <td class='stat-col'>", row$NP, "</td>\n",
-        "              <td class='era-col'>", row$ERA, "</td>\n",
-        "            </tr>\n"
-      )
-    }
+    html_content <- paste0(html_content, generate_pitching_rows(game$pitching$visitor))
     
     html_content <- paste0(
       html_content,
@@ -1751,24 +1753,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     )
     
     # Add home pitching rows
-    for (j in 1:nrow(game$pitching$home)) {
-      row <- game$pitching$home[j,]
-      player_name <- names(row)[1] # First column name is team place
-      html_content <- paste0(
-        html_content,
-        "            <tr>\n",
-        "              <td class='player-col'>", row[[1]], "</td>\n", # Player name
-        "              <td class='ip-col'>", row$IP, "</td>\n",
-        "              <td class='stat-col'>", row$H, "</td>\n",
-        "              <td class='stat-col'>", row$R, "</td>\n",
-        "              <td class='stat-col'>", row$ER, "</td>\n",
-        "              <td class='stat-col'>", row$BB, "</td>\n",
-        "              <td class='stat-col'>", row$SO, "</td>\n",
-        "              <td class='stat-col'>", row$NP, "</td>\n",
-        "              <td class='era-col'>", row$ERA, "</td>\n",
-        "            </tr>\n"
-      )
-    }
+    html_content <- paste0(html_content, generate_pitching_rows(game$pitching$home))
     
     html_content <- paste0(
       html_content,

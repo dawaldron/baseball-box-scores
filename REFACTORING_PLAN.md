@@ -30,6 +30,12 @@ This document outlines refactoring opportunities for the codebase, ordered by im
 - Consolidated 3 tryCatch blocks (game time, attendance, umpires) into one
 - Reduced ~35 lines to ~5 lines
 
+### Box Score HTML Row Generation (Completed 2026-01-19)
+- Added `generate_batting_rows()` helper function for batting table rows
+- Added `generate_pitching_rows()` helper function for pitching table rows
+- Replaced 4 duplicated for loops with single-line helper calls
+- Reduced ~68 lines to ~4 lines
+
 ---
 
 ## Phase 1: High Impact Refactors
