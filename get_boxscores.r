@@ -799,7 +799,7 @@ format_combined_batting_notes <- function(away_notes, home_notes) {
     list(col = "RBI", label = "RBIs"),
     list(col = "SB", label = "SB"),
     list(col = "CS", label = "CS"),
-    list(col = "S", label = "S"),
+    list(col = "S", label = "SH"),
     list(col = "SF", label = "SF"),
     list(col = "GIDP", label = "GIDP"),
     list(col = "GITP", label = "GITP"),
