@@ -62,5 +62,5 @@ jobs:
           exclude: |
             **/*.html
             **/*.pdf
-            !**/${{ steps.date.outputs.yesterday }}.html
-            !**/${{ steps.date.outputs.yesterday }}.pdf
+            !**/${{ steps.date.outputs.today }}.html
+            !**/${{ steps.date.outputs.today }}.pdf
