@@ -45,7 +45,7 @@ jobs:
       
       - name: Set date variable
         id: date
-        run: echo "yesterday=$(date -d 'yesterday' '+%Y%m%d')" >> $GITHUB_OUTPUT
+        run: echo "today=$(date '+%Y%m%d')" >> $GITHUB_OUTPUT
         
       - name: Generate box scores
         run: |
