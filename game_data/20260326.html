@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baseball Box Scores - March 26, 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+    body { font-family: 'Source Sans 3', 'Segoe UI'; margin: 0; padding: 0; background-color: #f9f7f1; }
+    .newspaper { max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .date { font-style: italic; margin-bottom: 10px; }
+    .main-title { font-size: 42px; font-weight: bold; margin: 0; }
+    .subtitle { font-size: 24px; margin: 5px 0 15px 0; }
+    .page { break-after: page; }
+    .nav-container { display: flex; justify-content: space-between; padding: 10px 0; margin: 10px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+    .leaders div { font-size: 14px; margin: 4px 0px; }
+    .leaders table { font-size: 14px; margin: 5px 0px; }
+    .boxscores-title { text-align: center; font-size: 24px; font-weight: bold; margin: 10px 0; border-bottom: 2px solid #000; }
+    .boxscores-container { column-count: 4; column-gap: 20px; margin-top: 20px; }
+    .game-container { break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; }
+    .game-header { font-weight: bold; font-size: 20px; border-bottom: 1px solid #000; }
+    .team-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; line-height: 1.2; margin-top: 2px; }
+    /* Improved table styling */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+    .batting tr:last-child { font-weight:700 }
+    th, td { text-align: left; overflow: hidden; line-height: 1.1; }
+    th { border-top: 1px solid #000; font-weight: bold; }
+    /* Specific column widths for standings tables */
+    .standings-table th { border: none; }
+    .standings-table .team-col { width: 20%; text-align: left; }
+    .standings-table .num-col { width: 5%; text-align: right; }
+    .standings-table .pct-col { width: 8%; text-align: right; }
+    /* General column alignment */
+    th:not(.team-col), td:not(.team-col) { text-align: right; }
+    td { white-space: nowrap; }
+    .notes { font-size: 14px; line-height: 1.2; padding: 4px 0; border-top: 1px black solid; }
+    .section { margin-bottom: 20px; }
+    .column-container { display: flex; gap: 15px; }
+    .column { flex: 1; }
+    .column-40 { width: 40%; }
+    .column-60 { width: 60%; }
+    .stats-header { font-size: 16px; font-weight: bold; margin: 8px 0; border-bottom: 1px solid #000; }
+    .stats-subheader { font-size: 14px; font-weight: bold; margin: 4px 0; border-bottom: 1px solid #000; }
+    /* Batting and pitching table styles */
+    .batting-table .player-col { width: 30%; text-align: left; }
+    .batting-table .stat-col { width: 5%; text-align: right; }
+    .batting-table .avg-col { width: 8%; text-align: right; }
+    .batting-table tr:last-child { font-weight:700 }
+    .pitching-table .player-col { width: 37%; text-align: left; }
+    .pitching-table .ip-col { width: 5%; text-align: right; }
+    .pitching-table .stat-col { width: 5%; text-align: right; }
+    .pitching-table .era-col { width: 10%; text-align: right; }
+    /* Leaders table styles */
+    .leaders-table th { border: none; }
+    .leaders-table .player-col { width: 30%; text-align: left; }
+    .leaders-table .stat-col { width: 5%; text-align: right; }
+    .leaders-table .avg-col { width: 8%; text-align: right; }
+    .leaders-section { margin-bottom: 20px; }
+    .leaders-note { font-size: 13px; margin: 5px 0; }
+    /* Games Schedule Section */
+    .games-section { margin-bottom: 20px; padding: 10px 0; border-top: 2px solid #000; }
+    .games-section .column-container { display: flex; gap: 20px; }
+    .games-left { width: 65%; }
+    .games-left-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+    .games-right { width: 35%; display: flex; flex-direction: column; gap: 15px; }
+    .games-section-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+    .game-score-line { font-size: 13px; line-height: 1.5; margin: 2px 0; }
+    .game-score-line .winner { font-weight: bold; }
+    .scheduled-game { padding-bottom: 4px; border-bottom: 1px dotted #000; }
+    .scheduled-game:last-child { border-bottom: none; }
+    .game-time { font-size: 12px; color: #666; }
+    .matchup { font-size: 14px; font-weight: bold; }
+    .pitchers { font-size: 12px; color: #333; }
+    .tomorrow-game { font-size: 13px; line-height: 1.6; }
+    /* Team Highlighting */
+    .standings-table .team-col { cursor: pointer; transition: background-color 0.2s; }
+    .standings-table .team-col:hover { background-color: #f0f0f0; }
+    .team-highlight { background-color: #fff3cd !important; }
+    .team-highlight-box { background-color: #fff9e6; outline: 2px solid #ffc107; }
+    .leaders-note span.team-highlight { padding: 0 2px; }
+  @media (min-width: 700px) and (max-width: 1000px) {
+    .main-title { font-size:32px; }
+    .subtitle { font-size:20px; }
+    .stats-subheader { font-size:16px; }
+    .game-header { font-size:26px; }
+    .boxscores-container { column-count: 1; column-gap: 10px; margin-top: 10px; }
+    .column-container { display: block }
+    table { font-size: 16px; }
+    .team-line { font-size: 20px; }
+    .leaders div { font-size: 16px; }
+    .leaders table { font-size: 16px; }
+    .leaders-note { font-size:16px; }
+    .notes { font-size: 16px; }
+    .column-40, .column-60 { width: 100%; }
+    .games-section .column-container { flex-direction: column; }
+    .games-left, .games-right { width: 100%; }
+    .games-left-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .main-title { font-size:28px; }
+    .subtitle { font-size:18px; }
+    .stats-subheader { font-size:14px; }
+    .game-header { font-size:22px; }
+    .boxscores-container { column-count: 1; column-gap: 10px; margin-top: 10px; }
+    .column-container { display: block }
+    table { font-size: 14px; }
+    .team-line { font-size: 18px; }
+    .leaders div { font-size: 14px; }
+    .leaders table { font-size: 14px; }
+    .leaders-note { font-size:14px; }
+    .notes { font-size: 14px; }
+    .column-40, .column-60 { width: 100%; }
+    .games-section .column-container { flex-direction: column; }
+    .games-left, .games-right { width: 100%; }
+    .games-left-inner { grid-template-columns: 1fr; }
+  }
+  @media print {
+      body { 
+        background-color: #fff;
+          width:1650px;
+      }
+      .newspaper { box-shadow: none; max-width: none; padding: 0; margin: 0; }
+      .nav-container { display: none; }
+      .column-container { display: flex; }
+      .boxscores-container { column-count: 5; }
+    }
+  </style>
+  <script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // Get current page filename (e.g., "20230607.html")
+      const currentPath = window.location.pathname;
+      const currentBasename = "20260326"; // "20230607"
+      const currentDir = currentPath.substring(0, currentPath.lastIndexOf("/") + 1);
+      
+      // Create navigation container
+      const navContainer = document.createElement("div");
+      navContainer.className = "nav-container";
+
+      // Create prev link placeholder
+      const prevLink = document.createElement("div");
+      prevLink.className = "prev-link";
+      prevLink.style.cssText = "flex: 1; text-align: left;";
+      prevLink.innerHTML = ""; // Initial loading text
+      
+      // Create pdf link placeholder
+      const pdfLink = document.createElement("div");
+      pdfLink.className = "pdf-link";
+      pdfLink.innerHTML = `<a href="20260326.pdf" style="color: #000; font-weight: bold;">pdf link</a>`;
+      
+      // Create next link placeholder
+      const nextLink = document.createElement("div");
+      nextLink.className = "next-link";
+      nextLink.style.cssText = "flex: 1; text-align: right;";
+      nextLink.innerHTML = ""; // Initial loading text
+      
+      // Add to container
+      navContainer.appendChild(prevLink);
+      navContainer.appendChild(pdfLink);
+      navContainer.appendChild(nextLink);
+      
+      // Insert navigation at the top and bottom of the content
+      const newspaperDiv = document.querySelector(".newspaper");
+      if (newspaperDiv) {
+        // Insert at top, after header
+        const header = document.querySelector(".header");
+        if (header) {
+          const topNav = navContainer.cloneNode(true);
+          header.after(topNav);
+        }
+        
+        // Insert at bottom
+        const bottomNav = navContainer.cloneNode(true);
+        newspaperDiv.appendChild(bottomNav);
+      }
+      
+      // Get all instances of the navigation elements
+      const prevLinks = document.querySelectorAll(".prev-link");
+      const nextLinks = document.querySelectorAll(".next-link");
+      
+      // Function to format a date string from YYYYMMDD to a display format
+      function formatDisplayDate(dateStr) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        
+        const date = new Date(Date.UTC(year, +month-1, day, 8, 0, 0));
+        return date.toLocaleDateString("en-US", {
+          year: "numeric", 
+          month: "long", 
+          day: "numeric"
+        });
+      }
+      
+      // Pure client-side approach to find adjacent pages
+      async function findAdjacentPages() {
+        // Generate arrays of possible dates to check, ordered by proximity
+        // For convenience in sorting and comparisons, we'll use YYYYMMDD format
+        const potentialPrevDates = [];
+        const potentialNextDates = [];
+        
+        // Parse the current date
+        const currentYear = parseInt(currentBasename.substring(0, 4));
+        const currentMonth = parseInt(currentBasename.substring(4, 6)) - 1; // JS months are 0-indexed
+        const currentDay = parseInt(currentBasename.substring(6, 8));
+        let checkDate = new Date(currentYear, currentMonth, currentDay);
+        
+        // Generate potential previous dates (12 days back)
+        for (let i = 1; i <= 12; i++) {
+          checkDate.setDate(checkDate.getDate() - 1);
+          const year = checkDate.getFullYear();
+          const month = String(checkDate.getMonth() + 1).padStart(2, "0");
+          const day = String(checkDate.getDate()).padStart(2, "0");
+          potentialPrevDates.push(`${year}${month}${day}`);
+        }
+        
+        // Reset date and generate potential next dates (12 days forward)
+        checkDate = new Date(currentYear, currentMonth, currentDay);
+        for (let i = 1; i <= 12; i++) {
+          checkDate.setDate(checkDate.getDate() + 1);
+          const year = checkDate.getFullYear();
+          const month = String(checkDate.getMonth() + 1).padStart(2, "0");
+          const day = String(checkDate.getDate()).padStart(2, "0");
+          potentialNextDates.push(`${year}${month}${day}`);
+        }
+        
+        // Check for the existence of files using fetch with HEAD requests
+        async function checkFileExists(filename) {
+          try {
+            // Build a full URL from the current location
+            const protocol = window.location.protocol;
+            const host = window.location.host;
+            const basePath = currentDir;
+            const fullUrl = `${protocol}//${host}${basePath}${filename}.html`;
+            
+            // Use GET request with cache control
+            const response = await fetch(fullUrl, { 
+              method: "GET",
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              mode: 'no-cors' // Try to avoid CORS issues
+            });
+            
+            return response.ok;
+          } catch (e) {
+            console.error("Error checking if file exists:", e);
+            return e.toString().includes("NetworkError") || e.toString().includes("Failed to fetch");
+          }
+        }
+        
+        // Find the first existing previous page
+        let foundPrev = false;
+        for (const dateStr of potentialPrevDates) {
+          if (await checkFileExists(dateStr)) {
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">« ${formatDisplayDate(dateStr)}</a>`;
+            // Update all prev link elements
+            prevLinks.forEach(el => {
+              el.innerHTML = linkHTML;
+            });
+            foundPrev = true;
+            break;
+          }
+        }
+        
+        if (!foundPrev) {
+          // Clear the loading text if no previous file was found
+          prevLinks.forEach(el => {
+            el.innerHTML = "";
+          });
+        }
+        
+        // Find the first existing next page
+        let foundNext = false;
+        for (const dateStr of potentialNextDates) {
+          if (await checkFileExists(dateStr)) {
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">${formatDisplayDate(dateStr)} »</a>`;
+            // Update all next link elements
+            nextLinks.forEach(el => {
+              el.innerHTML = linkHTML;
+            });
+            foundNext = true;
+            break;
+          }
+        }
+        
+        if (!foundNext) {
+          // Clear the loading text if no next file was found
+          nextLinks.forEach(el => {
+            el.innerHTML = "";
+          });
+        }
+      }
+      
+      // Start the process
+      findAdjacentPages();
+
+      // Team Highlighting Feature
+      let highlightedTeam = null;
+
+      function clearHighlights() {
+        document.querySelectorAll(".team-highlight, .team-highlight-box").forEach(el => {
+          el.classList.remove("team-highlight", "team-highlight-box");
+        });
+      }
+
+      function toggleTeamHighlight(team) {
+        // If clicking same team, unhighlight
+        if (highlightedTeam === team) {
+          clearHighlights();
+          highlightedTeam = null;
+          return;
+        }
+
+        // Clear existing highlights
+        clearHighlights();
+
+        // Set new highlighted team
+        highlightedTeam = team;
+
+        // Highlight standings rows with this team
+        document.querySelectorAll(`tr[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight leaders with this team
+        document.querySelectorAll(`span[data-team="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight");
+        });
+
+        // Highlight box scores where team played (either home or away)
+        document.querySelectorAll(`.game-container[data-team-away="${team}"], .game-container[data-team-home="${team}"]`).forEach(el => {
+          el.classList.add("team-highlight-box");
+        });
+
+        // Highlight games section entries
+        document.querySelectorAll(`[data-team-away="${team}"], [data-team-home="${team}"]`).forEach(el => {
+          if (!el.classList.contains("game-container")) {
+            el.classList.add("team-highlight");
+          }
+        });
+      }
+
+      // Add click handlers to standings team cells
+      document.querySelectorAll(".standings-table tr[data-team]").forEach(row => {
+        const teamCell = row.querySelector(".team-col");
+        if (teamCell) {
+          teamCell.addEventListener("click", function(e) {
+            e.preventDefault();
+            const team = row.getAttribute("data-team");
+            toggleTeamHighlight(team);
+          });
+        }
+      });
+    });
+    
+    </script>
+</head>
+<body>
+  <div class='newspaper'>
+    <div class='header'>
+      <div class='date'>March 26, 2026</div>
+      <h1 class='main-title'>WALDRN.COM/BOXSCORES</h1>
+      <div class='subtitle'>Daily MLB Standings & Box Scores</div>
+    </div>
+    <div class='page'>
+      <div class='section'>
+        <div class='column-container'>
+          <div class='column-40'>
+            <div class='boxscores-title'>A.L. Standings</div>
+            <div class='stats-subheader'>East Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='NYY'>
+                  <td class='team-col'>NY Yankees</td>
+                  <td class='num-col'>1</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>1.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>1-0</td>
+                  <td class='pct-col'>W1</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>1-0</td>
+                </tr>
+                <tr data-team='TOR'>
+                  <td class='team-col'>Toronto</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>0.5</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='BAL'>
+                  <td class='team-col'>Baltimore</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>0.5</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='TB'>
+                  <td class='team-col'>Tampa Bay</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>0.5</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='BOS'>
+                  <td class='team-col'>Boston</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>0.5</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>Central Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='CLE'>
+                  <td class='team-col'>Cleveland</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='KC'>
+                  <td class='team-col'>Kansas City</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='DET'>
+                  <td class='team-col'>Detroit</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='MIN'>
+                  <td class='team-col'>Minnesota</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='CWS'>
+                  <td class='team-col'>Chi White Sox</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>West Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='LAA'>
+                  <td class='team-col'>LA Angels</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='HOU'>
+                  <td class='team-col'>Houston</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='ATH'>
+                  <td class='team-col'>Athletics</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='SEA'>
+                  <td class='team-col'>Seattle</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='TEX'>
+                  <td class='team-col'>Texas</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class='column-60'>
+            <div class='boxscores-title'>A.L. LEADERS</div>
+            <div class='column-container leaders'>
+              <div class='column-40 leaders'>
+                <table class='leaders-table'>
+                  <thead>
+                    <tr>
+                      <th class='player-col'>Batting</th>
+                      <th class='stat-col'>G</th>
+                      <th class='stat-col'>AB</th>
+                      <th class='stat-col'>R</th>
+                      <th class='stat-col'>H</th>
+                      <th class='avg-col'>Avg.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>AWells, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>3</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>2</td>
+                      <td class='avg-col'>.667</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Stanton, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>4</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>2</td>
+                      <td class='avg-col'>.500</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>ChisholmJr, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>3</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.333</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>McMahon, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>3</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.333</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Caballero, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>4</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.250</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Rice, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>4</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.250</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Bellinger, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>5</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.200</td>
+                    </tr>
+                    <tr data-team='NYY'>
+                      <td class='player-col'>Grisham, NY Yankees</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>5</td>
+                      <td class='stat-col'>0</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.200</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class='leaders-note'>                  <b>Runs Batted In: </b><span data-team='NYY'>Grisham, NY Yankees, 2</span>; <span data-team='NYY'>McMahon, NY Yankees, 2</span>; <span data-team='NYY'>Caballero, NY Yankees, 1</span>; <span data-team='NYY'>Stanton, NY Yankees, 1</span>
+                </div>
+              </div>
+              <div class='column-60 leaders'>
+                <div class='leaders-note'>
+                  <b>Hits: </b><span data-team='NYY'>Stanton, NY Yankees, 2</span>; <span data-team='NYY'>AWells, NY Yankees, 2</span>; <span data-team='NYY'>Bellinger, NY Yankees, 1</span>; <span data-team='NYY'>Caballero, NY Yankees, 1</span>; <span data-team='NYY'>ChisholmJr, NY Yankees, 1</span>; <span data-team='NYY'>Grisham, NY Yankees, 1</span>; <span data-team='NYY'>McMahon, NY Yankees, 1</span>; <span data-team='NYY'>Rice, NY Yankees, 1</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Stolen Bases: </b><span data-team='NYY'>ChisholmJr, NY Yankees, 1</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Pitching: </b><span data-team='NYY'>Fried, NY Yankees, 1-0, 1.000</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Strikeouts: </b><span data-team='NYY'>Fried, NY Yankees, 4</span>; <span data-team='NYY'>Bird, NY Yankees, 1</span>; <span data-team='NYY'>Headrick, NY Yankees, 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='section'>
+        <div class='column-container'>
+          <div class='column-40'>
+            <div class='boxscores-title'>N.L. Standings</div>
+            <div class='stats-subheader'>East Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='ATL'>
+                  <td class='team-col'>Atlanta</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='MIA'>
+                  <td class='team-col'>Miami</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='NYM'>
+                  <td class='team-col'>NY Mets</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='WSH'>
+                  <td class='team-col'>Washington</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='PHI'>
+                  <td class='team-col'>Philadelphia</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>Central Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='MIL'>
+                  <td class='team-col'>Milwaukee</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='STL'>
+                  <td class='team-col'>St. Louis</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='CHC'>
+                  <td class='team-col'>Chi Cubs</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='PIT'>
+                  <td class='team-col'>Pittsburgh</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='CIN'>
+                  <td class='team-col'>Cincinnati</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='stats-subheader'>West Division</div>
+            <table class='standings-table'>
+              <thead>
+                <tr>
+                  <th class='team-col'>Team</th>
+                  <th class='num-col'>W</th>
+                  <th class='num-col'>L</th>
+                  <th class='pct-col'>Pct</th>
+                  <th class='pct-col'>GB</th>
+                  <th class='pct-col'>L10</th>
+                  <th class='pct-col'>Strk</th>
+                  <th class='pct-col'>Home</th>
+                  <th class='pct-col'>Away</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-team='AZ'>
+                  <td class='team-col'>Arizona</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='LAD'>
+                  <td class='team-col'>LA Dodgers</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='SD'>
+                  <td class='team-col'>San Diego</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='COL'>
+                  <td class='team-col'>Colorado</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>0</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>-</td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'></td>
+                  <td class='pct-col'>0-0</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+                <tr data-team='SF'>
+                  <td class='team-col'>San Francisco</td>
+                  <td class='num-col'>0</td>
+                  <td class='num-col'>1</td>
+                  <td class='pct-col'>.000</td>
+                  <td class='pct-col'>0.5</td>
+                  <td class='pct-col'>0-1</td>
+                  <td class='pct-col'>L1</td>
+                  <td class='pct-col'>0-1</td>
+                  <td class='pct-col'>0-0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class='column-60'>
+            <div class='boxscores-title'>N.L. LEADERS</div>
+            <div class='column-container leaders'>
+              <div class='column-40 leaders'>
+                <table class='leaders-table'>
+                  <thead>
+                    <tr>
+                      <th class='player-col'>Batting</th>
+                      <th class='stat-col'>G</th>
+                      <th class='stat-col'>AB</th>
+                      <th class='stat-col'>R</th>
+                      <th class='stat-col'>H</th>
+                      <th class='avg-col'>Avg.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-team='SF'>
+                      <td class='player-col'>Arraez, San Francisco</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>3</td>
+                      <td class='stat-col'>0</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.333</td>
+                    </tr>
+                    <tr data-team='SF'>
+                      <td class='player-col'>Devers, San Francisco</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>4</td>
+                      <td class='stat-col'>0</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.250</td>
+                    </tr>
+                    <tr data-team='SF'>
+                      <td class='player-col'>HRamos, San Francisco</td>
+                      <td class='stat-col'>1</td>
+                      <td class='stat-col'>4</td>
+                      <td class='stat-col'>0</td>
+                      <td class='stat-col'>1</td>
+                      <td class='avg-col'>.250</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class='column-60 leaders'>
+                <div class='leaders-note'>
+                  <b>Hits: </b><span data-team='SF'>Arraez, San Francisco, 1</span>; <span data-team='SF'>Devers, San Francisco, 1</span>; <span data-team='SF'>HRamos, San Francisco, 1</span>
+                </div>
+                <div class='leaders-note'>
+                  <b>Strikeouts: </b><span data-team='SF'>LWebb, San Francisco, 7</span>; <span data-team='SF'>Brubaker, San Francisco, 2</span>; <span data-team='SF'>KWinn, San Francisco, 2</span>; <span data-team='SF'>Kilian, San Francisco, 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='page'>
+      <div class='games-section'>
+        <div class='column-container'>
+          <div class='games-left'>
+            <div class='games-section-title'>TODAY'S GAMES</div>
+            <div class='games-left-inner'>
+              <div class='scheduled-game' data-team-away='PIT' data-team-home='NYM'>
+                <div class='game-time'>1:15 PM ET</div>
+                <div class='matchup'>Pittsburgh at NY Mets</div>
+                <div class='pitchers'>Skenes (0-0, -.--) vs. FPeralta (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='CWS' data-team-home='MIL'>
+                <div class='game-time'>2:10 PM ET</div>
+                <div class='matchup'>Chi White Sox at Milwaukee</div>
+                <div class='pitchers'>SSmith (0-0, -.--) vs. Misiorowski (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='WSH' data-team-home='CHC'>
+                <div class='game-time'>2:20 PM ET</div>
+                <div class='matchup'>Washington at Chi Cubs</div>
+                <div class='pitchers'>Cavalli (0-0, -.--) vs. Boyd (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='MIN' data-team-home='BAL'>
+                <div class='game-time'>3:05 PM ET</div>
+                <div class='matchup'>Minnesota at Baltimore</div>
+                <div class='pitchers'>Ryan (0-0, -.--) vs. TrRogers (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='BOS' data-team-home='CIN'>
+                <div class='game-time'>4:10 PM ET</div>
+                <div class='matchup'>Boston at Cincinnati</div>
+                <div class='pitchers'>Crochet (0-0, -.--) vs. AAbbott (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='LAA' data-team-home='HOU'>
+                <div class='game-time'>4:10 PM ET</div>
+                <div class='matchup'>LA Angels at Houston</div>
+                <div class='pitchers'>JSoriano (0-0, -.--) vs. HBrown (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='DET' data-team-home='SD'>
+                <div class='game-time'>4:10 PM ET</div>
+                <div class='matchup'>Detroit at San Diego</div>
+                <div class='pitchers'>Skubal (0-0, -.--) vs. Pivetta (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='TB' data-team-home='STL'>
+                <div class='game-time'>4:15 PM ET</div>
+                <div class='matchup'>Tampa Bay at St. Louis</div>
+                <div class='pitchers'>Rasmussen (0-0, -.--) vs. Liberatore (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='TEX' data-team-home='PHI'>
+                <div class='game-time'>4:15 PM ET</div>
+                <div class='matchup'>Texas at Philadelphia</div>
+                <div class='pitchers'>Eovaldi (0-0, -.--) vs. CSánchez (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='AZ' data-team-home='LAD'>
+                <div class='game-time'>8:30 PM ET</div>
+                <div class='matchup'>Arizona at LA Dodgers</div>
+                <div class='pitchers'>Gallen (0-0, -.--) vs. Yamamoto (0-0, -.--)</div>
+              </div>
+              <div class='scheduled-game' data-team-away='CLE' data-team-home='SEA'>
+                <div class='game-time'>10:10 PM ET</div>
+                <div class='matchup'>Cleveland at Seattle</div>
+                <div class='pitchers'>Bibee (0-0, -.--) vs. LGilbert (0-0, -.--)</div>
+              </div>
+            </div>
+          </div>
+          <div class='games-right'>
+            <div>
+              <div class='games-section-title'>YESTERDAY'S SCORES</div>
+              <div class='game-score-line' data-team-away='NYY' data-team-home='SF'>
+                <span class='winner'>New York 7</span>, <span class=''>San Francisco 0</span>
+              </div>
+            </div>
+            <div>
+              <div class='games-section-title'>TOMORROW'S GAMES</div>
+              <div class='tomorrow-game' data-team-away='NYY' data-team-home='SF'>
+                NY Yankees at San Francisco
+              </div>
+              <div class='tomorrow-game' data-team-away='ATH' data-team-home='TOR'>
+                Athletics at Toronto
+              </div>
+              <div class='tomorrow-game' data-team-away='COL' data-team-home='MIA'>
+                Colorado at Miami
+              </div>
+              <div class='tomorrow-game' data-team-away='KC' data-team-home='ATL'>
+                Kansas City at Atlanta
+              </div>
+              <div class='tomorrow-game' data-team-away='LAA' data-team-home='HOU'>
+                LA Angels at Houston
+              </div>
+              <div class='tomorrow-game' data-team-away='DET' data-team-home='SD'>
+                Detroit at San Diego
+              </div>
+              <div class='tomorrow-game' data-team-away='CLE' data-team-home='SEA'>
+                Cleveland at Seattle
+              </div>
+              <div class='tomorrow-game' data-team-away='AZ' data-team-home='LAD'>
+                Arizona at LA Dodgers
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='page'>
+      <div class='boxscores-title'>YESTERDAY'S BOX SCORES</div>
+      <div class='boxscores-container'>
+        <div class='game-container' data-team-away='NYY' data-team-home='SF'>
+          <div class='game-header'>Yankees 7, Giants 0</div>
+          <div class='team-line'>
+            <div class='team-name'>New York</div>
+            <div class='team-score'>050&numsp;020&numsp;000&numsp; &mdash;  &numsp;7 &numsp; 10 &numsp; 1            </div>
+          </div>
+          <div class='team-line'>
+            <div class='team-name'>San Francisco</div>
+            <div class='team-score'>000&numsp;000&numsp;000&numsp; &mdash;  &numsp;0 &numsp; &numsp;3 &numsp; 1            </div>
+          </div>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>New York</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Grisham cf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.200</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Judge rf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>4</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Bellinger lf</td>
+              <td class='stat-col'>5</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.200</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Rice 1b</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.250</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Stanton dh</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.500</td>
+            </tr>
+            <tr>
+              <td class='player-col'>ChisholmJr 2b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.333</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Caballero ss</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.250</td>
+            </tr>
+            <tr>
+              <td class='player-col'>McMahon 3b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.333</td>
+            </tr>
+            <tr>
+              <td class='player-col'>AWells c</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.667</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>36</td>
+              <td class='stat-col'>7</td>
+              <td class='stat-col'>10</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>12</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='batting-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Francisco</th>
+              <th class='stat-col'>AB</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>BI</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='avg-col'>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Arraez 2b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.333</td>
+            </tr>
+            <tr>
+              <td class='player-col'>MChapman 3b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Devers dh</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.250</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Adames ss</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>JLee rf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>HRamos lf</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.250</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Schmitt 1b</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Bailey c</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Bader cf</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='avg-col'>.000</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Totals</td>
+              <td class='stat-col'>31</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>3</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>6</td>
+              <td class='avg-col'></td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'><b>E:</b> Caballero (1), Adames (1). <b>LOB:</b> New York 6, San Francisco 7. <b>3B:</b> Grisham (1). <b>RBIs:</b> Grisham 2 (2), Stanton (1), Caballero (1), McMahon 2 (2). <b>SB:</b> ChisholmJr (1). <b>GIDP:</b> Caballero. <b>DP:</b> San Francisco (Adames-Arraez-Schmitt).</div>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>New York</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>Fried (W, 1-0)</td>
+              <td class='ip-col'>6.1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>4</td>
+              <td class='stat-col'>86</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Bird</td>
+              <td class='ip-col'>0.2</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>7</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Headrick</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>15</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Doval</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>13</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+          </tbody>
+          </table>
+          <table class='pitching-table'>
+          <thead>
+            <tr>
+              <th class='player-col'>San Francisco</th>
+              <th class='ip-col'>IP</th>
+              <th class='stat-col'>H</th>
+              <th class='stat-col'>R</th>
+              <th class='stat-col'>ER</th>
+              <th class='stat-col'>BB</th>
+              <th class='stat-col'>SO</th>
+              <th class='stat-col'>NP</th>
+              <th class='era-col'>ERA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class='player-col'>LWebb (L, 0-1)</td>
+              <td class='ip-col'>5.0</td>
+              <td class='stat-col'>9</td>
+              <td class='stat-col'>7</td>
+              <td class='stat-col'>6</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>7</td>
+              <td class='stat-col'>86</td>
+              <td class='era-col'>10.80</td>
+            </tr>
+            <tr>
+              <td class='player-col'>KWinn</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>19</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Brubaker</td>
+              <td class='ip-col'>2.0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>2</td>
+              <td class='stat-col'>22</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+            <tr>
+              <td class='player-col'>Kilian</td>
+              <td class='ip-col'>1.0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>0</td>
+              <td class='stat-col'>1</td>
+              <td class='stat-col'>10</td>
+              <td class='era-col'>0.00</td>
+            </tr>
+          </tbody>
+          </table>
+          <div class='notes'><b>WP:</b> Doval. <b>HBP:</b> ChisholmJr (by LWebb); Schmitt (by Fried).<b> Umpires: </b>H-Bill Miller, 1-Chad Fairchild, 2-Chad Whitson, 3-Brian Walsh.<b> T: </b>2h 27m.<b> A: </b>40,856.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

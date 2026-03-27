@@ -2256,7 +2256,7 @@ get_league_leadersMLB <- function(date) {
         .[, rank := cumsum(W != shift(W, fill = 0))] %>%
         .[, rank2 := cumsum(pct != shift(pct, fill = 0)), rank]
 
-      dt_lrank <- w_leaders[8, .(rank, rank2)]
+      dt_lrank <- w_leaders[pmin(8, min(w_leaders$rank)), .(rank, rank2)]
 
       w_leaders <- w_leaders %>%
         .[W > 0 &
@@ -2364,4 +2364,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 # Example usage:
 # get_box_scores("2025", "09", "21")
+# get_box_scores("2026", "03", "26")
 
