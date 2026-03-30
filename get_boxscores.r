@@ -1273,20 +1273,21 @@ generate_newspaper_page2 <- function(games_data, date_str,
       prevLink.style.cssText = "flex: 1; text-align: left;";
       prevLink.innerHTML = ""; // Initial loading text
       
-      // Create pdf link placeholder
-      const pdfLink = document.createElement("div");
-      pdfLink.className = "pdf-link";
-      pdfLink.innerHTML = `<a href="', date_str, '.pdf" style="color: #000; font-weight: bold;">pdf link</a>`;
-      
+      // Create center links (pdf + dark mode toggle)
+      const centerLinks = document.createElement("div");
+      centerLinks.className = "center-links";
+      const isDark = document.body.classList.contains("dark-mode");
+      centerLinks.innerHTML = `<a href="', date_str, '.pdf" style="color: var(--text-primary); font-weight: bold;">pdf</a><span class="nav-divider"></span><a href="#" class="dark-toggle" style="color: var(--text-primary); font-weight: bold;">${isDark ? "light" : "dark"}</a>`;
+
       // Create next link placeholder
       const nextLink = document.createElement("div");
       nextLink.className = "next-link";
       nextLink.style.cssText = "flex: 1; text-align: right;";
       nextLink.innerHTML = ""; // Initial loading text
-      
+
       // Add to container
       navContainer.appendChild(prevLink);
-      navContainer.appendChild(pdfLink);
+      navContainer.appendChild(centerLinks);
       navContainer.appendChild(nextLink);
       
       // Insert navigation at the top and bottom of the content
@@ -1304,6 +1305,17 @@ generate_newspaper_page2 <- function(games_data, date_str,
         newspaperDiv.appendChild(bottomNav);
       }
       
+      // Attach dark mode toggle listeners to all cloned links
+      document.querySelectorAll(".dark-toggle").forEach(link => {
+        link.addEventListener("click", function(e) {
+          e.preventDefault();
+          document.body.classList.toggle("dark-mode");
+          const isDark = document.body.classList.contains("dark-mode");
+          localStorage.setItem("darkMode", isDark ? "on" : "off");
+          document.querySelectorAll(".dark-toggle").forEach(l => l.textContent = isDark ? "light" : "dark");
+        });
+      });
+
       // Get all instances of the navigation elements
       const prevLinks = document.querySelectorAll(".prev-link");
       const nextLinks = document.querySelectorAll(".next-link");
@@ -1385,7 +1397,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
         let foundPrev = false;
         for (const dateStr of potentialPrevDates) {
           if (await checkFileExists(dateStr)) {
-            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">« ${formatDisplayDate(dateStr)}</a>`;
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: var(--text-primary); font-weight: bold;">« ${formatDisplayDate(dateStr)}</a>`;
             // Update all prev link elements
             prevLinks.forEach(el => {
               el.innerHTML = linkHTML;
@@ -1406,7 +1418,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
         let foundNext = false;
         for (const dateStr of potentialNextDates) {
           if (await checkFileExists(dateStr)) {
-            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: #000; font-weight: bold;">${formatDisplayDate(dateStr)} »</a>`;
+            const linkHTML = `<a href="${dateStr}.html" style="text-decoration: none; color: var(--text-primary); font-weight: bold;">${formatDisplayDate(dateStr)} »</a>`;
             // Update all next link elements
             nextLinks.forEach(el => {
               el.innerHTML = linkHTML;
@@ -1497,26 +1509,55 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "  <title>Baseball Box Scores - ", display_date, "</title>\n",
     "  <style>\n",
     "    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');\n",
-    "    body { font-family: 'Source Sans 3', 'Segoe UI'; margin: 0; padding: 0; background-color: #f9f7f1; }\n",
-    "    .newspaper { max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }\n",
-    "    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }\n",
+    "    :root {\n",
+    "      --bg-page: #f9f7f1;\n",
+    "      --bg-paper: #fff;\n",
+    "      --text-primary: #000;\n",
+    "      --text-secondary: #333;\n",
+    "      --text-muted: #666;\n",
+    "      --border-strong: #000;\n",
+    "      --border-light: #ddd;\n",
+    "      --shadow: rgba(0,0,0,0.1);\n",
+    "      --hover-bg: #f0f0f0;\n",
+    "      --highlight-bg: #fff3cd;\n",
+    "      --highlight-box-bg: #fff9e6;\n",
+    "      --highlight-border: #ffc107;\n",
+    "    }\n",
+    "    body.dark-mode {\n",
+    "      --bg-page: #121212;\n",
+    "      --bg-paper: #1e1e1e;\n",
+    "      --text-primary: #e0e0e0;\n",
+    "      --text-secondary: #ccc;\n",
+    "      --text-muted: #999;\n",
+    "      --border-strong: #555;\n",
+    "      --border-light: #333;\n",
+    "      --shadow: rgba(0,0,0,0.4);\n",
+    "      --hover-bg: #2a2a2a;\n",
+    "      --highlight-bg: #3a3520;\n",
+    "      --highlight-box-bg: #2e2b1a;\n",
+    "      --highlight-border: #ffc107;\n",
+    "    }\n",
+    "    body { font-family: 'Source Sans 3', 'Segoe UI'; margin: 0; padding: 0; background-color: var(--bg-page); color: var(--text-primary); }\n",
+    "    a { color: var(--text-primary); }\n",
+    "    .newspaper { max-width: 1200px; margin: 0 auto; padding: 20px; background-color: var(--bg-paper); box-shadow: 0 0 10px var(--shadow); }\n",
+    "    .header { text-align: center; border-bottom: 2px solid var(--border-strong); padding-bottom: 10px; margin-bottom: 20px; }\n",
     "    .date { font-style: italic; margin-bottom: 10px; }\n",
     "    .main-title { font-size: 42px; font-weight: bold; margin: 0; }\n",
     "    .subtitle { font-size: 24px; margin: 5px 0 15px 0; }\n",
     "    .page { break-after: page; }\n",
-    "    .nav-container { display: flex; justify-content: space-between; padding: 10px 0; margin: 10px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }\n",
+    "    .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin: 10px 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }\n",
     "    .leaders div { font-size: 14px; margin: 4px 0px; }\n",
     "    .leaders table { font-size: 14px; margin: 5px 0px; }\n",
-    "    .boxscores-title { text-align: center; font-size: 24px; font-weight: bold; margin: 10px 0; border-bottom: 2px solid #000; }\n",
+    "    .boxscores-title { text-align: center; font-size: 24px; font-weight: bold; margin: 10px 0; border-bottom: 2px solid var(--border-strong); }\n",
     "    .boxscores-container { column-count: 4; column-gap: 20px; margin-top: 20px; }\n",
     "    .game-container { break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; }\n",
-    "    .game-header { font-weight: bold; font-size: 20px; border-bottom: 1px solid #000; }\n",
+    "    .game-header { font-weight: bold; font-size: 20px; border-bottom: 1px solid var(--border-strong); }\n",
     "    .team-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; line-height: 1.2; margin-top: 2px; }\n",
     "    /* Improved table styling */\n",
     "    table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }\n",
     "    .batting tr:last-child { font-weight:700 }\n",
     "    th, td { text-align: left; overflow: hidden; line-height: 1.1; }\n",
-    "    th { border-top: 1px solid #000; font-weight: bold; }\n",
+    "    th { border-top: 1px solid var(--border-strong); font-weight: bold; }\n",
     "    /* Specific column widths for standings tables */\n",
     "    .standings-table th { border: none; }\n",
     "    .standings-table .team-col { width: 20%; text-align: left; }\n",
@@ -1525,14 +1566,14 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    /* General column alignment */\n",
     "    th:not(.team-col), td:not(.team-col) { text-align: right; }\n",
     "    td { white-space: nowrap; }\n",
-    "    .notes { font-size: 14px; line-height: 1.2; padding: 4px 0; border-top: 1px black solid; }\n",
+    "    .notes { font-size: 14px; line-height: 1.2; padding: 4px 0; border-top: 1px solid var(--border-strong); }\n",
     "    .section { margin-bottom: 20px; }\n",
     "    .column-container { display: flex; gap: 15px; }\n",
     "    .column { flex: 1; }\n",
     "    .column-40 { width: 40%; }\n",
     "    .column-60 { width: 60%; }\n",
-    "    .stats-header { font-size: 16px; font-weight: bold; margin: 8px 0; border-bottom: 1px solid #000; }\n",
-    "    .stats-subheader { font-size: 14px; font-weight: bold; margin: 4px 0; border-bottom: 1px solid #000; }\n",
+    "    .stats-header { font-size: 16px; font-weight: bold; margin: 8px 0; border-bottom: 1px solid var(--border-strong); }\n",
+    "    .stats-subheader { font-size: 14px; font-weight: bold; margin: 4px 0; border-bottom: 1px solid var(--border-strong); }\n",
     "    /* Batting and pitching table styles */\n",
     "    .batting-table .player-col { width: 30%; text-align: left; }\n",
     "    .batting-table .stat-col { width: 5%; text-align: right; }\n",
@@ -1550,25 +1591,28 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "    .leaders-section { margin-bottom: 20px; }\n",
     "    .leaders-note { font-size: 13px; margin: 5px 0; }\n",
     "    /* Games Schedule Section */\n",
-    "    .games-section { margin-bottom: 20px; padding: 10px 0; border-top: 2px solid #000; }\n",
+    "    .games-section { margin-bottom: 20px; padding: 10px 0; border-top: 2px solid var(--border-strong); }\n",
     "    .games-section .column-container { display: flex; gap: 20px; }\n",
     "    .games-left { width: 65%; }\n",
     "    .games-left-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }\n",
     "    .games-right { width: 35%; display: flex; flex-direction: column; gap: 15px; }\n",
-    "    .games-section-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }\n",
+    "    .games-section-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid var(--border-strong); padding-bottom: 4px; }\n",
     "    .game-score-line { font-size: 13px; line-height: 1.5; margin: 2px 0; }\n",
     "    .game-score-line .winner { font-weight: bold; }\n",
-    "    .scheduled-game { padding-bottom: 4px; border-bottom: 1px dotted #000; }\n",
+    "    .scheduled-game { padding-bottom: 4px; border-bottom: 1px dotted var(--border-strong); }\n",
     "    .scheduled-game:last-child { border-bottom: none; }\n",
-    "    .game-time { font-size: 12px; color: #666; }\n",
+    "    .center-links { display: flex; align-items: center; gap: 0; }\n",
+    "    .nav-divider { display: inline-block; width: 1px; height: 14px; background-color: var(--border-strong); margin: 0 10px; }\n",
+    "    .dark-toggle { cursor: pointer; }\n",
+    "    .game-time { font-size: 12px; color: var(--text-muted); }\n",
     "    .matchup { font-size: 14px; font-weight: bold; }\n",
-    "    .pitchers { font-size: 12px; color: #333; }\n",
+    "    .pitchers { font-size: 12px; color: var(--text-secondary); }\n",
     "    .tomorrow-game { font-size: 13px; line-height: 1.6; }\n",
     "    /* Team Highlighting */\n",
     "    .standings-table .team-col { cursor: pointer; transition: background-color 0.2s; }\n",
-    "    .standings-table .team-col:hover { background-color: #f0f0f0; }\n",
-    "    .team-highlight { background-color: #fff3cd !important; }\n",
-    "    .team-highlight-box { background-color: #fff9e6; outline: 2px solid #ffc107; }\n",
+    "    .standings-table .team-col:hover { background-color: var(--hover-bg); }\n",
+    "    .team-highlight { background-color: var(--highlight-bg) !important; }\n",
+    "    .team-highlight-box { background-color: var(--highlight-box-bg); outline: 2px solid var(--highlight-border); }\n",
     "    .leaders-note span.team-highlight { padding: 0 2px; }\n",
     "  @media (min-width: 700px) and (max-width: 1000px) {\n",
     "    .main-title { font-size:32px; }\n",
@@ -1609,10 +1653,13 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "  @media print {\n",
     "      body { \n",
     "        background-color: #fff;\n",
+    "        color: #000;\n",
     "          width:1650px;\n",
+    "        --bg-page: #fff; --bg-paper: #fff; --text-primary: #000; --border-strong: #000; --border-light: #ddd;\n",
     "      }\n",
     "      .newspaper { box-shadow: none; max-width: none; padding: 0; margin: 0; }\n",
     "      .nav-container { display: none; }\n",
+    "      .dark-toggle { display: none; }\n",
     "      .column-container { display: flex; }\n",
     "      .boxscores-container { column-count: 5; }\n",
     "    }\n",
@@ -1620,6 +1667,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "  <script>\n", navigation_js, "\n    </script>\n",
     "</head>\n",
     "<body>\n",
+    "<script>if(localStorage.getItem('darkMode')==='on')document.body.classList.add('dark-mode');</script>\n",
     "  <div class='newspaper'>\n",
     "    <div class='header'>\n",
     "      <div class='date'>", display_date, "</div>\n",
