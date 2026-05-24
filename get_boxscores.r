@@ -2304,13 +2304,12 @@ get_league_leadersMLB <- function(date) {
         .[, rank := cumsum(W != shift(W, fill = 0))] %>%
         .[, rank2 := cumsum(pct != shift(pct, fill = 0)), rank]
 
-      dt_lrank <- w_leaders[pmin(8, min(w_leaders$rank)), .(rank, rank2)]
-
+      dt_lrank <- w_leaders[pmin(8, .N), .(rank, rank2)]
       w_leaders <- w_leaders %>%
         .[W > 0 &
             seq <= 10 &
             !((rank > dt_lrank$rank) |
-                (rank = dt_lrank$rank & rank2 > dt_lrank$rank2))] %>%
+                (rank == dt_lrank$rank & rank2 > dt_lrank$rank2))] %>%
         .[, .(Player, Team, Abbrev, Value = paste0(W, '-', L, ', ', sub('0\\.','.',sprintf('%#.3f', pct))))] %>%
         apply(1, as.list)
     } else {
