@@ -1506,6 +1506,7 @@ generate_newspaper_page2 <- function(games_data, date_str,
     "<head>\n",
     "  <meta charset=\"UTF-8\">\n",  # Add charset meta tag
     "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n",
+    "  <meta name=\"format-detection\" content=\"telephone=no\">\n",
     "  <title>Baseball Box Scores - ", display_date, "</title>\n",
     "  <style>\n",
     "    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');\n",
@@ -2411,5 +2412,5 @@ print_to_pdf <- function(url, filename = NULL, wait_ = FALSE, ...) {
 
 # Example usage:
 # get_box_scores("2025", "09", "21")
-# get_box_scores("2026", "03", "26")
+# get_box_scores("2026", "05", "23")
 
