@@ -2,8 +2,8 @@ name: Generate and Deploy Box Scores
 
 on:
   schedule:
-    # Run daily at 6 AM UTC (adjust as needed)
-    - cron: '0 6 * * *'
+    # Run daily at 5 AM UTC (adjust as needed)
+    - cron: '0 5 * * *'
   # Allow manual triggering
   workflow_dispatch:
 
